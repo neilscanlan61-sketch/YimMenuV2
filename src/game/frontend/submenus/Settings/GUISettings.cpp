@@ -1,4 +1,5 @@
 #include "GUISettings.hpp"
+#include "core/frontend/manager/styles/ModernList/ListTheme.hpp"
 #include "core/commands/ColorCommand.hpp"
 #include "core/commands/Command.hpp"
 #include "core/commands/FloatCommand.hpp"
@@ -315,6 +316,11 @@ namespace YimMenu
 			ImGui::Separator();
 			if (ImGui::BeginTabBar("StyleTabs"))
 			{
+				if (ImGui::BeginTabItem("List Themes"))
+				{
+					ListUI::DrawThemeEditor();
+					ImGui::EndTabItem();
+				}
 				if (ImGui::BeginTabItem("Colors"))
 				{
 					DrawColorsTab();

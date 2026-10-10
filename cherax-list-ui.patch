@@ -1,0 +1,848 @@
+diff --git "a/CHERAX_LIST_README.md" "b/CHERAX_LIST_README.md"
+new file mode 100644
+--- /dev/null
++++ "b/CHERAX_LIST_README.md"
+@@ -0,0 +1,36 @@
++# Cherax-inspired ImGui list UI — source update
++
++This is an original dark/violet, Cherax-inspired list presentation for the supplied YimMenuV2 source. It is not an exact Cherax clone and contains no Cherax code, branding or assets. Existing command bindings and other UI layouts are retained.
++
++## Changes
++- Violet-accented charcoal panel, left-aligned YIMMENU header, selected-row accent, compact breadcrumbs and descriptions. All list colors and panel/row dimensions come from a dedicated custom theme.
++- Phone activation and phone navigation/scroll controls are suppressed in all three GTA PAD groups while the list menu is open. Arrow/Enter/Backspace events reach ImGui first, then are not forwarded to GTA's window. These changes target the phone opening when you navigate sections.
++- WASD, camera, sprint, jump/Space and driving remain available during ordinary keyboard list browsing. The original text-entry input capture is retained. Suppression ends when the menu closes or another layout is selected; an already-open phone is not forcibly closed.
++- Automatically creates `%APPDATA%\YimMenuV2\themes\list-ui\` at UI initialization. Separate from the existing global `themes.json`.
++- Three initial presets: Cherax Violet, Midnight Blue, Emerald. Existing files are never overwritten by initialization.
++- Preset loading, refresh, live color/dimension editing, save/overwrite under a custom name, reload, and remembered selection via `active.txt`. Malformed, oversized and unsafe-name files are rejected without replacing the current in-memory theme.
++
++## Build and install
++1. Extract this ZIP. It contains the complete edited source, not a prebuilt DLL.
++2. Merge the contents of `YimMenuV2` into your existing repository, replacing matching files. Do not put it in an extra nested `YimMenuV2` folder. Alternatively, build this complete source directly with the original toolchain.
++3. Commit and push to the same branch/fork you already use to build this source. The included GitHub Actions workflow builds the Windows DLL; download the new `RelWithDebInfo-Native-Clang` artifact when successful.
++4. Select `Settings > GUI > UI > UI Style > Cherax-inspired List` if you have another style saved. The existing numeric style ID (4) is preserved.
++5. Open `Settings > Customize > List Themes` to manage the list presets. Arrow keys/Tab navigate widgets; Enter activates. The list stays keyboard-first, with no mouse cursor. Mouse-wheel browsing is not newly implemented by this update.
++
++## Controls
++Insert (or the existing Ctrl + backslash shortcut): open/close.
++Up/Down: rows. Enter/Right: open section. Backspace: back. Space stays a gameplay input during ordinary browsing. Text editing and active popups keep normal ImGui handling.
++
++## Custom files
++Use the editor or copy a `.theme` file into the list-ui folder, then press Refresh theme list. Select a preset to load it; edits preview while the menu is running. Save / overwrite theme persists the changes and makes that preset the remembered selection. Unsaved live edits do not survive restarting.
++Names: 1–48 ASCII letters/digits/spaces/hyphens/underscores; no leading/trailing spaces or Windows device names. RGBA channels are floats from 0 to 1. Width: 320–760, height: 420–1000, row height: 36–64, rounding: 0–16. Missing keys use the default violet theme values. Unknown keys, extra values and out-of-range data produce an error message. The panel is clamped to the available display size.
++
++## Verification — read before use
++PASS: real list-renderer source compiled against the provided mock ImGui/frontend harness with GCC C++17, warnings treated as errors; routing, focus, back guards, removed routes, style restoration and all 16 input-policy combinations.
++PASS: real theme persistence code compiled and exercised for initialization, preset listing, save/load, process restart restoration, invalid paths/names, malformed/out-of-range/oversize data, and non-overwrite initialization.
++PASS: phone-control set and key mapping tests, plus exclusions for movement/camera/jump/sprint.
++The HTML/PNG reference is an illustrative design preview, NOT an in-game screenshot or render of the compiled ImGui menu.
++
++Full Windows compilation/linking, the actual ImGui integration and GTA input behavior could not be tested in this Linux sandbox. There is no compiled DLL included. Build first, then verify the phone stays closed during Up/Down/Enter/Backspace navigation, controls return after closing, theme files appear and survive restarting, and custom editors remain usable. No anti-cheat/account-safety guarantee is made.
++
++Original project license and build workflows are preserved. `cherax-list-ui.patch` is a diff against the source in the uploaded RAR. Existing older Modern List documentation is historical; this file describes the new revision.
+diff --git "a/README.md" "b/README.md"
+--- "a/README.md"
++++ "b/README.md"
+@@ -1,30 +1,32 @@
+-# YimMenuV2
+-
+-Experimental menu for GTA 5: Enhanced
+-
+-## How to use
+-
+-1. Download the latest version of FSL from [here](https://www.unknowncheats.me/forum/grand-theft-auto-v/616977-fsl-local-gtao-saves.html) and place WINMM.dll in your GTA V directory. Using FSL is now optional but highly recommended for account safety
+-2. Download YimMenuV2 from [GitHub Releases](https://github.com/YimMenu/YimMenuV2/releases/tag/nightly)
+-3. Download an injector, such as [Xenos](https://www.unknowncheats.me/forum/general-programming-and-reversing/124013-xenos-injector-v2-3-2-a.html)
+-4. Open Rockstar Launcher, select Grand Theft Auto V Enhanced, go to settings, and disable BattlEye. If you are using Steam or Epic Games, you may have to pass the -nobattleye command line parameter as well
+-5. Launch GTA V, then use your injector to inject YimMenuV2.dll at the main menu
+-
+-## How to open the menu?
+-
+-Press the `INSERT` key or `Ctrl+\` to open the menu
+- 
+-## Common issues
+-
+-### I keep getting desynced from public sessions every five minutes
+-
+-We currently do not have a BattlEye bypass, and legitimate hosts will eventually remove you due to a heartbeat failure. There is currently no way to stop this other than using an actual (private) bypass
+-
+-### I removed FSL and all my progress disappeared!
+-
+-FSL reroutes account save data to disk, so any progress made with FSL will only show up if you have FSL enabled. If you don't want this, you can also use YimMenuV2 without FSL, but this is not recommended
+-
+-### I removed FSL and the game doesn't start up anymore
+-
+-This is a known issue; delete "Documents/GTAV Enhanced/Profiles" to fix
+-Trigger Modern List build.
++> **UI update:** See [CHERAX_LIST_README.md](CHERAX_LIST_README.md) for the Cherax-inspired list UI, phone-input changes, custom theme folder, build steps and testing limitations. This archive contains source only, not a compiled DLL.
++
++# YimMenuV2
++
++Experimental menu for GTA 5: Enhanced
++
++## How to use
++
++1. Download the latest version of FSL from [here](https://www.unknowncheats.me/forum/grand-theft-auto-v/616977-fsl-local-gtao-saves.html) and place WINMM.dll in your GTA V directory. Using FSL is now optional but highly recommended for account safety
++2. Download YimMenuV2 from [GitHub Releases](https://github.com/YimMenu/YimMenuV2/releases/tag/nightly)
++3. Download an injector, such as [Xenos](https://www.unknowncheats.me/forum/general-programming-and-reversing/124013-xenos-injector-v2-3-2-a.html)
++4. Open Rockstar Launcher, select Grand Theft Auto V Enhanced, go to settings, and disable BattlEye. If you are using Steam or Epic Games, you may have to pass the -nobattleye command line parameter as well
++5. Launch GTA V, then use your injector to inject YimMenuV2.dll at the main menu
++
++## How to open the menu?
++
++Press the `INSERT` key or `Ctrl+\` to open the menu
++ 
++## Common issues
++
++### I keep getting desynced from public sessions every five minutes
++
++We currently do not have a BattlEye bypass, and legitimate hosts will eventually remove you due to a heartbeat failure. There is currently no way to stop this other than using an actual (private) bypass
++
++### I removed FSL and all my progress disappeared!
++
++FSL reroutes account save data to disk, so any progress made with FSL will only show up if you have FSL enabled. If you don't want this, you can also use YimMenuV2 without FSL, but this is not recommended
++
++### I removed FSL and the game doesn't start up anymore
++
++This is a known issue; delete "Documents/GTAV Enhanced/Profiles" to fix
++Trigger Modern List build.
+diff --git "a/docs/cherax-list-preview.html" "b/docs/cherax-list-preview.html"
+new file mode 100644
+--- /dev/null
++++ "b/docs/cherax-list-preview.html"
+@@ -0,0 +1,3 @@
++<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>YimMenu list UI design reference</title><style>
++*{box-sizing:border-box}body{margin:0;background:#17171c;color:#f2f0fa;font:16px/1.5 Arial,sans-serif;min-height:100vh;padding:32px;display:flex;gap:48px;align-items:flex-start}.menu{width:440px;flex:none;background:#0e0e13;border:1px solid #3d384f;border-radius:8px;padding:12px}.banner{height:100px;background:#1b142a;border-radius:8px;border-bottom:3px solid #b082ff;padding:14px 18px}.banner strong{font-size:31px;letter-spacing:2px;display:block}.banner span{font-size:14px;color:#b0abc0}.crumb{padding:16px 2px 10px;color:#b0abc0;border-bottom:1px solid #3d384f;font-size:14px}.rows{padding:8px 0;min-height:355px;background:#14141b}.row{height:44px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;border-left:3px solid transparent}.row span:last-child{color:#b0abc0}.row.selected{background:#30244a;border-color:#b082ff}.row.selected span:last-child{color:#b082ff}.description{border-top:1px solid #3d384f;padding:12px 2px;min-height:64px}.keys{color:#b0abc0;font-size:14px;margin:0}.aside{max-width:390px;padding-top:26px}.eyebrow{font-size:14px;color:#b082ff;letter-spacing:2px}h1{font-size:32px;line-height:1.2;margin:14px 0 22px}p{color:#b0abc0}code{font:14px/1.5 Consolas,monospace;color:#e2d6fc;overflow-wrap:anywhere}.swatches{display:flex;gap:12px;margin:24px 0}.swatches i{width:32px;height:32px;border-radius:8px;border:1px solid #554b65}small{display:block;font-size:14px;color:#b0abc0;border-top:1px solid #3d384f;margin-top:32px;padding-top:16px}@media(max-width:760px){body{padding:16px;display:block}.menu{width:100%}.aside{padding-top:24px}.banner strong{font-size:28px}.row{font-size:16px}.keys{font-size:14px}}
++</style><div class="menu"><header class="banner"><strong>YIMMENU</strong><span>ENHANCED / LIST INTERFACE</span></header><div class="crumb">Home / Settings</div><div class="rows"><div class="row"><span>GUI</span><span>›</span></div><div class="row selected"><span>Customize</span><span>›</span></div><div class="row"><span>Hotkeys</span><span>›</span></div><div class="row"><span>Lua scripts</span><span>›</span></div></div><div class="description">Customize list colors, sizing and saved presets.</div><p class="keys">↑↓ Select · Enter Open · Backspace Back</p></div><div class="aside"><div class="eyebrow">CHERAX-INSPIRED / IMGUI</div><h1>A cleaner list.<br>Your own theme.</h1><p>Dark surfaces, violet accents and a clear keyboard-selection bar. Original YimMenu branding and existing command bindings stay in place.</p><div class="swatches"><i style="background:#b082ff" title="Cherax Violet"></i><i style="background:#5fabff" title="Midnight Blue"></i><i style="background:#70dea8" title="Emerald"></i></div><p>Built-in presets + editable custom themes</p><code>%APPDATA%\YimMenuV2\themes\list-ui\</code><small>Illustrative reference only. Not an in-game screenshot. Full Windows build and GTA input testing are still required.</small></div></html>
+\ No newline at end of file
+diff --git "a/docs/list-theme-examples/Cherax Violet.theme" "b/docs/list-theme-examples/Cherax Violet.theme"
+new file mode 100644
+--- /dev/null
++++ "b/docs/list-theme-examples/Cherax Violet.theme"
+@@ -0,0 +1,13 @@
++# YimMenuV2 list theme v1; RGBA values are 0..1
++Background 0.0549999997 0.0549999997 0.075000003 0.980000019
++Surface 0.0799999982 0.0799999982 0.104999997 1
++Accent 0.689999998 0.50999999 1 1
++Selection 0.189999998 0.140000001 0.289999992 1
++Text 0.949999988 0.939999998 0.980000019 1
++Muted 0.689999998 0.670000017 0.75 1
++Border 0.239999995 0.219999999 0.310000002 1
++Header 0.104999997 0.0799999982 0.165000007 1
++Width 440
++Height 700
++RowHeight 44
++Rounding 8
+diff --git "a/docs/list-theme-examples/Emerald.theme" "b/docs/list-theme-examples/Emerald.theme"
+new file mode 100644
+--- /dev/null
++++ "b/docs/list-theme-examples/Emerald.theme"
+@@ -0,0 +1,13 @@
++# YimMenuV2 list theme v1; RGBA values are 0..1
++Background 0.0549999997 0.0549999997 0.075000003 0.980000019
++Surface 0.0799999982 0.0799999982 0.104999997 1
++Accent 0.439999998 0.870000005 0.660000026 1
++Selection 0.0799999982 0.219999999 0.159999996 1
++Text 0.949999988 0.939999998 0.980000019 1
++Muted 0.689999998 0.670000017 0.75 1
++Border 0.239999995 0.219999999 0.310000002 1
++Header 0.0500000007 0.140000001 0.100000001 1
++Width 440
++Height 700
++RowHeight 44
++Rounding 8
+diff --git "a/docs/list-theme-examples/Midnight Blue.theme" "b/docs/list-theme-examples/Midnight Blue.theme"
+new file mode 100644
+--- /dev/null
++++ "b/docs/list-theme-examples/Midnight Blue.theme"
+@@ -0,0 +1,13 @@
++# YimMenuV2 list theme v1; RGBA values are 0..1
++Background 0.0549999997 0.0549999997 0.075000003 0.980000019
++Surface 0.0799999982 0.0799999982 0.104999997 1
++Accent 0.370000005 0.670000017 1 1
++Selection 0.0900000036 0.189999998 0.300000012 1
++Text 0.949999988 0.939999998 0.980000019 1
++Muted 0.689999998 0.670000017 0.75 1
++Border 0.239999995 0.219999999 0.310000002 1
++Header 0.0649999976 0.119999997 0.180000007 1
++Width 440
++Height 700
++RowHeight 44
++Rounding 8
+diff --git "a/src/core/frontend/manager/UIManager.cpp" "b/src/core/frontend/manager/UIManager.cpp"
+--- "a/src/core/frontend/manager/UIManager.cpp"
++++ "b/src/core/frontend/manager/UIManager.cpp"
+@@ -10,7 +10,7 @@
+ 		{1, "Modern"},
+ 		{2, "Modern (Vertical)"},
+ 	    {3, "Modern (Modular)"},
+-	    {4, "Modern List"},
++	    {4, "Cherax-inspired List"},
+ 	};
+ 
+ 	// Expose as global reference so other code can use it
+diff --git "a/src/core/frontend/manager/styles/ModernList/ListTheme.cpp" "b/src/core/frontend/manager/styles/ModernList/ListTheme.cpp"
+new file mode 100644
+--- /dev/null
++++ "b/src/core/frontend/manager/styles/ModernList/ListTheme.cpp"
+@@ -0,0 +1,182 @@
++#include "ListTheme.hpp"
++#include <algorithm>
++#include <array>
++#include <cmath>
++#include <fstream>
++#include <iomanip>
++#include <locale>
++#include <sstream>
++#include <system_error>
++#include <stdexcept>
++#include <utility>
++
++namespace YimMenu::ListUI
++{
++    static Theme s_Theme;
++    static std::filesystem::path s_Folder;
++    static std::string s_Status, s_Name = "Cherax Violet";
++    static bool s_Initialized = false;
++    struct ColorField { const char* Name; ImVec4 Theme::* Member; };
++    static constexpr ColorField colors[] = {
++        {"Background", &Theme::Background}, {"Surface", &Theme::Surface},
++        {"Accent", &Theme::Accent}, {"Selection", &Theme::Selection},
++        {"Text", &Theme::Text}, {"Muted", &Theme::Muted},
++        {"Border", &Theme::Border}, {"Header", &Theme::Header}};
++    struct FloatField { const char* Name; float Theme::* Member; float Min, Max; };
++    static constexpr FloatField sizes[] = {
++        {"Width", &Theme::Width, 320, 760}, {"Height", &Theme::Height, 420, 1000},
++        {"RowHeight", &Theme::RowHeight, 36, 64}, {"Rounding", &Theme::Rounding, 0, 16}};
++
++    static bool ValidName(const std::string& name)
++    {
++        if (name.empty() || name.size() > 48 || name.front() == ' ' || name.back() == ' ') return false;
++        for (unsigned char c : name)
++            if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
++                (c >= '0' && c <= '9') || c == ' ' || c == '-' || c == '_')) return false;
++        std::string upper = name;
++        std::transform(upper.begin(), upper.end(), upper.begin(), [](unsigned char c) {
++            return c >= 'a' && c <= 'z' ? char(c - 'a' + 'A') : char(c);
++        });
++        if (upper == "CON" || upper == "PRN" || upper == "AUX" || upper == "NUL") return false;
++        if (upper.size() == 4 && (upper.substr(0, 3) == "COM" || upper.substr(0, 3) == "LPT")
++            && upper[3] >= '1' && upper[3] <= '9') return false;
++        return true;
++    }
++
++    static void Validate(const Theme& theme)
++    {
++        for (const auto& field : colors)
++        {
++            const auto c = theme.*(field.Member);
++            for (float v : {c.x, c.y, c.z, c.w})
++                if (!std::isfinite(v) || v < 0 || v > 1) throw std::runtime_error("Colors must be between 0 and 1.");
++        }
++        for (const auto& field : sizes)
++        {
++            const float v = theme.*(field.Member);
++            if (!std::isfinite(v) || v < field.Min || v > field.Max)
++                throw std::runtime_error("Theme dimensions are outside the supported range.");
++        }
++    }
++
++    static void Write(const std::filesystem::path& path, const Theme& theme)
++    {
++        Validate(theme);
++        std::ofstream file(path, std::ios::trunc);
++        file.imbue(std::locale::classic());
++        if (!file) throw std::runtime_error("Cannot write theme file.");
++        file << "# YimMenuV2 list theme v1; RGBA values are 0..1\n" << std::setprecision(9);
++        for (const auto& field : colors)
++        {
++            const auto c = theme.*(field.Member);
++            file << field.Name << ' ' << c.x << ' ' << c.y << ' ' << c.z << ' ' << c.w << '\n';
++        }
++        for (const auto& field : sizes) file << field.Name << ' ' << theme.*(field.Member) << '\n';
++        file.flush();
++        if (!file) throw std::runtime_error("Writing the theme failed.");
++    }
++
++    static Theme Read(const std::filesystem::path& path)
++    {
++        std::ifstream file(path);
++        if (!file) throw std::runtime_error("Cannot open theme file.");
++        if (std::filesystem::file_size(path) > 16384) throw std::runtime_error("Theme file is too large.");
++        Theme result; // Missing keys inherit the built-in default, never stale previous values.
++        std::string line;
++        while (std::getline(file, line))
++        {
++            std::istringstream input(line);
++            input.imbue(std::locale::classic());
++            std::string key;
++            if (!(input >> key) || key[0] == '#') continue;
++            bool found = false;
++            for (const auto& field : colors) if (key == field.Name)
++            {
++                auto& c = result.*(field.Member);
++                if (!(input >> c.x >> c.y >> c.z >> c.w)) throw std::runtime_error("Invalid RGBA entry: " + key);
++                found = true;
++            }
++            for (const auto& field : sizes) if (key == field.Name)
++            {
++                if (!(input >> result.*(field.Member))) throw std::runtime_error("Invalid dimension: " + key);
++                found = true;
++            }
++            std::string extra;
++            if (!found || (input >> extra)) throw std::runtime_error("Unknown key or extra values: " + key);
++        }
++        if (file.bad()) throw std::runtime_error("Reading the theme failed.");
++        Validate(result);
++        return result;
++    }
++
++    Theme& CurrentTheme() { return s_Theme; }
++    const std::filesystem::path& ThemeFolder() { return s_Folder; }
++    const std::string& ThemeStatus() { return s_Status; }
++    const std::string& ActiveThemeName() { return s_Name; }
++
++    bool LoadTheme(const std::string& name)
++    {
++        try
++        {
++            if (s_Folder.empty() || !ValidName(name)) throw std::runtime_error("Invalid theme name or unavailable folder.");
++            const auto candidate = Read(s_Folder / (name + ".theme"));
++            std::ofstream active(s_Folder / "active.txt", std::ios::trunc);
++            active << name << '\n'; active.flush();
++            if (!active) throw std::runtime_error("Cannot persist active theme selection.");
++            s_Theme = candidate; s_Name = name; s_Status = "Loaded: " + name;
++            return true;
++        }
++        catch (const std::exception& e) { s_Status = e.what(); return false; }
++    }
++
++    bool SaveTheme(const std::string& name)
++    {
++        try
++        {
++            if (s_Folder.empty() || !ValidName(name)) throw std::runtime_error("Use 1-48 letters, digits, spaces, - or _ for the name.");
++            Write(s_Folder / (name + ".theme"), s_Theme);
++            return LoadTheme(name);
++        }
++        catch (const std::exception& e) { s_Status = e.what(); return false; }
++    }
++
++    std::vector<std::string> ThemeNames()
++    {
++        std::vector<std::string> result;
++        try
++        {
++            if (s_Folder.empty()) return result;
++            for (const auto& entry : std::filesystem::directory_iterator(s_Folder))
++                if (entry.is_regular_file() && entry.path().extension() == ".theme" && ValidName(entry.path().stem().string()))
++                    result.push_back(entry.path().stem().string());
++            std::sort(result.begin(), result.end());
++        }
++        catch (const std::exception& e) { s_Status = e.what(); }
++        return result;
++    }
++
++    void InitializeThemes(const std::filesystem::path& folder)
++    {
++        if (s_Initialized) return;
++        try
++        {
++            std::filesystem::create_directories(folder);
++            s_Folder = folder;
++            Theme violet;
++            Theme blue; blue.Accent = ImVec4(0.37f, 0.67f, 1.0f, 1); blue.Selection = ImVec4(0.09f, 0.19f, 0.30f, 1); blue.Header = ImVec4(0.065f, 0.12f, 0.18f, 1);
++            Theme green; green.Accent = ImVec4(0.44f, 0.87f, 0.66f, 1); green.Selection = ImVec4(0.08f, 0.22f, 0.16f, 1); green.Header = ImVec4(0.05f, 0.14f, 0.10f, 1);
++            for (const auto& preset : {std::pair{"Cherax Violet", violet}, std::pair{"Midnight Blue", blue}, std::pair{"Emerald", green}})
++            {
++                const auto path = folder / (std::string(preset.first) + ".theme");
++                if (!std::filesystem::exists(path)) Write(path, preset.second);
++            }
++            std::string selected = "Cherax Violet";
++            std::ifstream active(folder / "active.txt");
++            if (active) std::getline(active, selected);
++            s_Initialized = true;
++            // If an edited preset is invalid, keep the in-memory safe default and report the error.
++            LoadTheme(selected);
++        }
++        catch (const std::exception& e) { s_Status = e.what(); }
++    }
++}
+diff --git "a/src/core/frontend/manager/styles/ModernList/ListTheme.hpp" "b/src/core/frontend/manager/styles/ModernList/ListTheme.hpp"
+new file mode 100644
+--- /dev/null
++++ "b/src/core/frontend/manager/styles/ModernList/ListTheme.hpp"
+@@ -0,0 +1,34 @@
++#pragma once
++#include <imgui.h>
++#include <filesystem>
++#include <string>
++#include <vector>
++
++namespace YimMenu::ListUI
++{
++    struct Theme
++    {
++        ImVec4 Background{0.055f, 0.055f, 0.075f, 0.98f};
++        ImVec4 Surface{0.080f, 0.080f, 0.105f, 1.0f};
++        ImVec4 Accent{0.69f, 0.51f, 1.0f, 1.0f};
++        ImVec4 Selection{0.19f, 0.14f, 0.29f, 1.0f};
++        ImVec4 Text{0.95f, 0.94f, 0.98f, 1.0f};
++        ImVec4 Muted{0.69f, 0.67f, 0.75f, 1.0f};
++        ImVec4 Border{0.24f, 0.22f, 0.31f, 1.0f};
++        ImVec4 Header{0.105f, 0.08f, 0.165f, 1.0f};
++        float Width = 440.0f;
++        float Height = 700.0f;
++        float RowHeight = 44.0f;
++        float Rounding = 8.0f;
++    };
++    Theme& CurrentTheme();
++    // Initialize once from the project's configured data directory, not the DLL directory.
++    void InitializeThemes(const std::filesystem::path& folder);
++    const std::filesystem::path& ThemeFolder();
++    std::vector<std::string> ThemeNames();
++    bool LoadTheme(const std::string& name);
++    bool SaveTheme(const std::string& name);
++    const std::string& ThemeStatus();
++    const std::string& ActiveThemeName();
++    void DrawThemeEditor();
++}
+diff --git "a/src/core/frontend/manager/styles/ModernList/ListThemeEditor.cpp" "b/src/core/frontend/manager/styles/ModernList/ListThemeEditor.cpp"
+new file mode 100644
+--- /dev/null
++++ "b/src/core/frontend/manager/styles/ModernList/ListThemeEditor.cpp"
+@@ -0,0 +1,43 @@
++#include "ListTheme.hpp"
++#include <cstring>
++
++namespace YimMenu::ListUI
++{
++    void DrawThemeEditor()
++    {
++        static char name[49] = "My Theme";
++        static std::vector<std::string> presets;
++        static bool scanned = false;
++        if (!scanned) { presets = ThemeNames(); scanned = true; }
++        ImGui::TextWrapped("List-only themes. Other ImGui layouts keep their own style. Changes preview immediately; save to keep them.");
++        ImGui::TextWrapped("Folder: %s", ThemeFolder().string().c_str());
++        if (ImGui::BeginCombo("Preset", ActiveThemeName().c_str()))
++        {
++            for (const auto& preset : presets)
++                if (ImGui::Selectable(preset.c_str(), preset == ActiveThemeName())) LoadTheme(preset);
++            ImGui::EndCombo();
++        }
++        if (ImGui::Button("Refresh theme list")) presets = ThemeNames();
++        ImGui::InputText("Theme name", name, sizeof(name));
++        if (ImGui::Button("Save / overwrite theme"))
++        {
++            SaveTheme(name); presets = ThemeNames();
++        }
++        if (ImGui::Button("Reload saved theme")) LoadTheme(ActiveThemeName());
++        if (!ThemeStatus().empty()) ImGui::TextWrapped("%s", ThemeStatus().c_str());
++        ImGui::Separator();
++        auto& theme = CurrentTheme();
++        ImGui::ColorEdit4("Background", &theme.Background.x);
++        ImGui::ColorEdit4("Surface", &theme.Surface.x);
++        ImGui::ColorEdit4("Accent", &theme.Accent.x);
++        ImGui::ColorEdit4("Selected row", &theme.Selection.x);
++        ImGui::ColorEdit4("Text", &theme.Text.x);
++        ImGui::ColorEdit4("Secondary text", &theme.Muted.x);
++        ImGui::ColorEdit4("Border", &theme.Border.x);
++        ImGui::ColorEdit4("Header", &theme.Header.x);
++        ImGui::SliderFloat("Panel width", &theme.Width, 320, 760, "%.0f");
++        ImGui::SliderFloat("Panel height", &theme.Height, 420, 1000, "%.0f");
++        ImGui::SliderFloat("Row height", &theme.RowHeight, 36, 64, "%.0f");
++        ImGui::SliderFloat("Corner rounding", &theme.Rounding, 0, 16, "%.0f");
++    }
++}
+diff --git "a/src/core/frontend/manager/styles/ModernList/ModernList.cpp" "b/src/core/frontend/manager/styles/ModernList/ModernList.cpp"
+--- "a/src/core/frontend/manager/styles/ModernList/ModernList.cpp"
++++ "b/src/core/frontend/manager/styles/ModernList/ModernList.cpp"
+@@ -2,6 +2,7 @@
+ #include <atomic>
+ #include <string>
+ #include "ModernList.hpp"
++#include "ListTheme.hpp"
+ #include "core/frontend/manager/UIManager.hpp"
+ 
+ namespace YimMenu::ListUI
+@@ -26,7 +27,7 @@
+         ImGui::PushID(id);
+         const auto start = ImGui::GetCursorScreenPos();
+         const float width = ImGui::GetContentRegionAvail().x;
+-        const float height = std::max(44.0f, ImGui::GetTextLineHeight() + 14.0f);
++        const float height = std::max(CurrentTheme().RowHeight, ImGui::GetTextLineHeight() + 14.0f);
+         // Draw one filled keyboard-selection bar, not separate focus and mouse bars.
+         ImGui::PushStyleColor(ImGuiCol_NavHighlight, ImVec4(0, 0, 0, 0));
+         const bool activated = ImGui::Selectable("##list-row", false, 0, ImVec2(width, height));
+@@ -39,8 +40,8 @@
+         auto* draw = ImGui::GetWindowDrawList();
+         if (focused)
+         {
+-            draw->AddRectFilled(start, ImVec2(start.x + width, start.y + height), IM_COL32(22, 63, 70, 255), 2.0f);
+-            draw->AddRectFilled(start, ImVec2(start.x + 3, start.y + height), IM_COL32(65, 221, 227, 255));
++            draw->AddRectFilled(start, ImVec2(start.x + width, start.y + height), ImGui::GetColorU32(CurrentTheme().Selection), 2.0f);
++            draw->AddRectFilled(start, ImVec2(start.x + 3, start.y + height), ImGui::GetColorU32(CurrentTheme().Accent));
+             s_FocusedLabel = label;
+         }
+         const auto valueSize = ImGui::CalcTextSize(value);
+@@ -49,7 +50,7 @@
+         draw->AddText(ImVec2(start.x + 12, baseline), ImGui::GetColorU32(ImGuiCol_Text), label);
+         draw->PopClipRect();
+         draw->AddText(ImVec2(start.x + width - valueSize.x - 12, baseline),
+-            enabled ? IM_COL32(117, 238, 235, 255) : IM_COL32(175, 190, 197, 255), value);
++            ImGui::GetColorU32(enabled ? CurrentTheme().Accent : CurrentTheme().Muted), value);
+         ImGui::PopID();
+         return pressed;
+     }
+@@ -76,22 +77,16 @@
+         const float width = ImGui::GetContentRegionAvail().x;
+         const float height = std::max(94.0f, ImGui::GetTextLineHeight() * 4.0f);
+         auto* draw = ImGui::GetWindowDrawList();
+-        // Original vector header: no Impulse texture/assets or game/authentication code.
+-        draw->AddRectFilledMultiColor(p, ImVec2(p.x + width, p.y + height),
+-            IM_COL32(14, 41, 49, 255), IM_COL32(6, 15, 21, 255),
+-            IM_COL32(6, 15, 21, 255), IM_COL32(9, 28, 35, 255));
+-        draw->AddRectFilled(p, ImVec2(p.x + width, p.y + 3), IM_COL32(65, 221, 227, 255));
++        // Original Cherax-inspired presentation, no proprietary branding/assets.
++        draw->AddRectFilled(p, ImVec2(p.x + width, p.y + height), ImGui::GetColorU32(CurrentTheme().Header), CurrentTheme().Rounding);
++        draw->AddRectFilled(ImVec2(p.x, p.y + height - 3), ImVec2(p.x + width, p.y + height), ImGui::GetColorU32(CurrentTheme().Accent));
+         const float fontSize = ImGui::GetFontSize();
+         const float titleSize = fontSize * 1.65f;
+-        const char* title = "YIMMENU";
+-        const float titleWidth = ImGui::CalcTextSize(title).x * titleSize / fontSize;
+-        draw->AddText(ImGui::GetFont(), titleSize,
+-            ImVec2(p.x + (width - titleWidth) * 0.5f, p.y + 20), IM_COL32(239, 249, 249, 255), title);
+-        const char* subtitle = "V2  /  ENHANCED  /  KEYBOARD";
+-        const float subtitleSize = fontSize * 0.70f;
+-        const float subtitleWidth = ImGui::CalcTextSize(subtitle).x * subtitleSize / fontSize;
+-        draw->AddText(ImGui::GetFont(), subtitleSize,
+-            ImVec2(p.x + (width - subtitleWidth) * 0.5f, p.y + height - 27), IM_COL32(135, 207, 211, 255), subtitle);
++        draw->AddText(ImGui::GetFont(), titleSize, ImVec2(p.x + 18, p.y + 17),
++            ImGui::GetColorU32(CurrentTheme().Text), "YIMMENU");
++        const char* subtitle = "ENHANCED  /  LIST INTERFACE";
++        draw->AddText(ImGui::GetFont(), fontSize * 0.75f, ImVec2(p.x + 18, p.y + height - 29),
++            ImGui::GetColorU32(CurrentTheme().Muted), subtitle);
+         ImGui::Dummy(ImVec2(width, height));
+     }
+ }
+@@ -110,33 +105,34 @@
+                 ListUI::s_Description.clear();
+                 ListUI::s_PendingValueLabel.clear();
+                 auto& s = ImGui::GetStyle();
++                const auto& theme = ListUI::CurrentTheme();
+                 s.WindowPadding = ImVec2(12, 12);
+-                s.ItemSpacing = ImVec2(6, 2);
++                s.ItemSpacing = ImVec2(8, 4);
+                 s.FramePadding = ImVec2(10, 10);
+-                s.WindowRounding = 6;
+-                s.ChildRounding = 2;
+-                s.FrameRounding = 3;
++                s.WindowRounding = theme.Rounding;
++                s.ChildRounding = 4;
++                s.FrameRounding = 4;
+                 s.WindowBorderSize = 1;
+-                s.ScrollbarSize = 5;
+-                s.Colors[ImGuiCol_WindowBg] = ImVec4(0.035f, 0.047f, 0.06f, 0.98f);
+-                s.Colors[ImGuiCol_ChildBg] = ImVec4(0.045f, 0.06f, 0.075f, 1);
+-                s.Colors[ImGuiCol_PopupBg] = ImVec4(0.045f, 0.06f, 0.075f, 1);
+-                s.Colors[ImGuiCol_Text] = ImVec4(0.94f, 0.97f, 0.98f, 1);
+-                s.Colors[ImGuiCol_TextDisabled] = ImVec4(0.64f, 0.73f, 0.77f, 1);
+-                s.Colors[ImGuiCol_Border] = ImVec4(0.15f, 0.23f, 0.26f, 1);
+-                s.Colors[ImGuiCol_Header] = ImVec4(0.06f, 0.12f, 0.14f, 1);
+-                s.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.085f, 0.24f, 0.27f, 1);
+-                s.Colors[ImGuiCol_HeaderActive] = s.Colors[ImGuiCol_HeaderHovered];
+-                s.Colors[ImGuiCol_Button] = ImVec4(0.09f, 0.15f, 0.18f, 1);
+-                s.Colors[ImGuiCol_ButtonHovered] = s.Colors[ImGuiCol_HeaderHovered];
+-                s.Colors[ImGuiCol_ButtonActive] = s.Colors[ImGuiCol_HeaderActive];
+-                s.Colors[ImGuiCol_FrameBg] = ImVec4(0.07f, 0.11f, 0.14f, 1);
+-                s.Colors[ImGuiCol_FrameBgHovered] = s.Colors[ImGuiCol_HeaderHovered];
+-                s.Colors[ImGuiCol_FrameBgActive] = s.Colors[ImGuiCol_HeaderActive];
+-                s.Colors[ImGuiCol_CheckMark] = ImVec4(0.25f, 0.87f, 0.89f, 1);
+-                s.Colors[ImGuiCol_SliderGrab] = s.Colors[ImGuiCol_CheckMark];
+-                s.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.46f, 0.93f, 0.92f, 1);
+-                s.Colors[ImGuiCol_NavHighlight] = s.Colors[ImGuiCol_CheckMark];
++                s.ScrollbarSize = 6;
++                s.Colors[ImGuiCol_WindowBg] = theme.Background;
++                s.Colors[ImGuiCol_ChildBg] = theme.Surface;
++                s.Colors[ImGuiCol_PopupBg] = theme.Surface;
++                s.Colors[ImGuiCol_Text] = theme.Text;
++                s.Colors[ImGuiCol_TextDisabled] = theme.Muted;
++                s.Colors[ImGuiCol_Border] = theme.Border;
++                s.Colors[ImGuiCol_Header] = theme.Surface;
++                s.Colors[ImGuiCol_HeaderHovered] = theme.Selection;
++                s.Colors[ImGuiCol_HeaderActive] = theme.Selection;
++                s.Colors[ImGuiCol_Button] = theme.Surface;
++                s.Colors[ImGuiCol_ButtonHovered] = theme.Selection;
++                s.Colors[ImGuiCol_ButtonActive] = theme.Selection;
++                s.Colors[ImGuiCol_FrameBg] = theme.Background;
++                s.Colors[ImGuiCol_FrameBgHovered] = theme.Selection;
++                s.Colors[ImGuiCol_FrameBgActive] = theme.Selection;
++                s.Colors[ImGuiCol_CheckMark] = theme.Accent;
++                s.Colors[ImGuiCol_SliderGrab] = theme.Accent;
++                s.Colors[ImGuiCol_SliderGrabActive] = theme.Text;
++                s.Colors[ImGuiCol_NavHighlight] = theme.Accent;
+             }
+             ~StyleScope() { ImGui::GetStyle() = original; ListUI::s_Active = false; }
+         } style;
+@@ -162,10 +158,11 @@
+         auto& io = ImGui::GetIO();
+         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavNoCaptureKeyboard;
+         // GUI::ToggleMouse owns NoMouse/NoMouseCursorChange, including theme transitions.
+-        const ImVec2 size(std::max(280.0f, std::min(440.0f, io.DisplaySize.x - 32)),
+-            std::max(360.0f, std::min(700.0f, io.DisplaySize.y - 32)));
++        const auto& theme = ListUI::CurrentTheme();
++        const ImVec2 size(std::max(1.0f, std::min(theme.Width, io.DisplaySize.x - 32)),
++            std::max(1.0f, std::min(theme.Height, io.DisplaySize.y - 32)));
+         ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+-        ImGui::SetNextWindowPos(ImVec2(32, 32), ImGuiCond_Always);
++        ImGui::SetNextWindowPos(ImVec2(16, 16), ImGuiCond_Always);
+         if (ListUI::s_FocusRequested.load()) ImGui::SetNextWindowFocus();
+         UIManager::SetShowContentWindow(true);
+         const auto flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse
+diff --git "a/src/core/frontend/manager/styles/Themes.cpp" "b/src/core/frontend/manager/styles/Themes.cpp"
+--- "a/src/core/frontend/manager/styles/Themes.cpp"
++++ "b/src/core/frontend/manager/styles/Themes.cpp"
+@@ -1,4 +1,6 @@
+ #include "Themes.hpp"
++#include "ModernList/ListTheme.hpp"
++#include "core/filemgr/FileMgr.hpp"
+ #include "core/commands/ColorCommand.hpp"
+ #include "game/frontend/submenus/Settings/GUISettings.hpp"
+ 
+@@ -92,6 +94,8 @@
+ 
+ 	void SetupStyle()
+ 	{
++		ListUI::InitializeThemes(FileMgr::GetProjectFolder("themes/list-ui").Path());
++
+ 		// Apply default style first
+ 		DefaultStyle();
+ 
+diff --git "a/src/core/renderer/Renderer.cpp" "b/src/core/renderer/Renderer.cpp"
+--- "a/src/core/renderer/Renderer.cpp"
++++ "b/src/core/renderer/Renderer.cpp"
+@@ -1,6 +1,7 @@
+ #include "core/frontend/manager/UIManager.hpp"
+ #include "game/frontend/GUI.hpp"
+ #include "game/frontend/GUIInputPolicy.hpp"
++#include "game/frontend/ListInputControls.hpp"
+ #include "Renderer.hpp"
+ #include "D3D12Hook.hpp"
+ #include "core/frontend/manager/styles/Themes.hpp"
+@@ -342,6 +343,10 @@
+                 && GetGUIInputPolicy(GUI::IsOpen(), UIManager::IsListStyle(), GUI::IsOnboarding(), ImGui::GetIO().WantTextInput).PreserveGameplay
+                 && !ImGui::IsAnyItemActive();
+             if (!gameplaySpace) ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
++            // ImGui sees the keys first; GTA's window must not also open/navigate the phone.
++            // Gameplay controls polled outside WndProc are reserved by GUI::RunScriptImpl.
++            if (keyMessage && GUI::IsOpen() && UIManager::IsListStyle() && !GUI::IsOnboarding()
++                && IsListNavigationKey(wparam)) return 0;
+         }
+ 
+         if (GetInstance().m_OriginalWndProc)
+diff --git "a/src/game/frontend/GUI.cpp" "b/src/game/frontend/GUI.cpp"
+--- "a/src/game/frontend/GUI.cpp"
++++ "b/src/game/frontend/GUI.cpp"
+@@ -1,4 +1,5 @@
+ #include "GUIInputPolicy.hpp"
++#include "ListInputControls.hpp"
+ #include "core/frontend/manager/UIManager.hpp"
+ #include "GUI.hpp"
+ #include "Menu.hpp"
+@@ -113,18 +114,17 @@
+ 		{
+ 			if (Renderer::IsInitialized() && GUI::IsOpen())
+ 			{
++				if (UIManager::IsListStyle() && !GUI::IsOnboarding())
++                {
++                    for (int group = 0; group < 3; ++group)
++                        for (const auto control : ListInputControls)
++                            PAD::DISABLE_CONTROL_ACTION(group, static_cast<int>(control), true);
++                }
+ 				if (UIManager::ShowingContentWindow())
+ 				{
+                     if (GetGUIInputPolicy(GUI::IsOpen(), UIManager::IsListStyle(), GUI::IsOnboarding(), GUI::IsUsingKeyboard()).PreserveGameplay)
+                     {
+-                        // Keep WASD, sprint/jump, driving and camera input enabled.
+-                        // Prevent arrow/Enter menu navigation from also operating frontend UI.
+-                        static constexpr ControllerInputs listControls[] = {
+-                            ControllerInputs::INPUT_FRONTEND_UP, ControllerInputs::INPUT_FRONTEND_DOWN,
+-                            ControllerInputs::INPUT_FRONTEND_LEFT, ControllerInputs::INPUT_FRONTEND_RIGHT,
+-                            ControllerInputs::INPUT_FRONTEND_ACCEPT, ControllerInputs::INPUT_FRONTEND_CANCEL};
+-                        for (const auto control : listControls)
+-                            PAD::DISABLE_CONTROL_ACTION(0, static_cast<int>(control), true);
++                        // Phone/frontend reservation already applied above. Preserve gameplay.
+                     }
+                     else if (GUI::IsUsingKeyboard() && PAD::IS_USING_KEYBOARD_AND_MOUSE(0))
+ 					{
+diff --git "a/src/game/frontend/ListInputControls.hpp" "b/src/game/frontend/ListInputControls.hpp"
+new file mode 100644
+--- /dev/null
++++ "b/src/game/frontend/ListInputControls.hpp"
+@@ -0,0 +1,24 @@
++#pragma once
++#include <array>
++#include <cstdint>
++#include "types/pad/ControllerInputs.hpp"
++
++namespace YimMenu
++{
++    inline constexpr std::array ListInputControls = {
++        ControllerInputs::INPUT_PHONE,
++        ControllerInputs::INPUT_CELLPHONE_UP, ControllerInputs::INPUT_CELLPHONE_DOWN,
++        ControllerInputs::INPUT_CELLPHONE_LEFT, ControllerInputs::INPUT_CELLPHONE_RIGHT,
++        ControllerInputs::INPUT_CELLPHONE_SELECT, ControllerInputs::INPUT_CELLPHONE_CANCEL,
++        ControllerInputs::INPUT_CELLPHONE_OPTION, ControllerInputs::INPUT_CELLPHONE_EXTRA_OPTION,
++        ControllerInputs::INPUT_CELLPHONE_SCROLL_FORWARD, ControllerInputs::INPUT_CELLPHONE_SCROLL_BACKWARD,
++        ControllerInputs::INPUT_FRONTEND_UP, ControllerInputs::INPUT_FRONTEND_DOWN,
++        ControllerInputs::INPUT_FRONTEND_LEFT, ControllerInputs::INPUT_FRONTEND_RIGHT,
++        ControllerInputs::INPUT_FRONTEND_ACCEPT, ControllerInputs::INPUT_FRONTEND_CANCEL};
++    // Win32 virtual-key values without depending on windows.h.
++    constexpr bool IsListNavigationKey(std::uintptr_t key)
++    {
++        return key == 0x26 || key == 0x28 || key == 0x25 || key == 0x27 // arrows
++            || key == 0x0D || key == 0x08; // Enter / Backspace
++    }
++}
+diff --git "a/src/game/frontend/submenus/Settings/GUISettings.cpp" "b/src/game/frontend/submenus/Settings/GUISettings.cpp"
+--- "a/src/game/frontend/submenus/Settings/GUISettings.cpp"
++++ "b/src/game/frontend/submenus/Settings/GUISettings.cpp"
+@@ -1,4 +1,5 @@
+ #include "GUISettings.hpp"
++#include "core/frontend/manager/styles/ModernList/ListTheme.hpp"
+ #include "core/commands/ColorCommand.hpp"
+ #include "core/commands/Command.hpp"
+ #include "core/commands/FloatCommand.hpp"
+@@ -315,6 +316,11 @@
+ 			ImGui::Separator();
+ 			if (ImGui::BeginTabBar("StyleTabs"))
+ 			{
++				if (ImGui::BeginTabItem("List Themes"))
++				{
++					ListUI::DrawThemeEditor();
++					ImGui::EndTabItem();
++				}
+ 				if (ImGui::BeginTabItem("Colors"))
+ 				{
+ 					DrawColorsTab();
+diff --git "a/tests/modern-list/Mock.hpp" "b/tests/modern-list/Mock.hpp"
+--- "a/tests/modern-list/Mock.hpp"
++++ "b/tests/modern-list/Mock.hpp"
+@@ -20,9 +20,18 @@
+ inline ImGuiStyle style;inline ImGuiIO io;inline ImDrawList draw;inline const void* id=nullptr;inline const void* click=nullptr;inline bool back=false, key=false,popup=false,begin=true,child=true;inline const void* focused=nullptr;inline int nextKey=0;inline bool active=false;inline int focusRequests=0;inline int categoryDraws=0;inline int windowBalance=0,childBalance=0;
+ inline ImGuiStyle& GetStyle(){return style;}inline ImGuiIO& GetIO(){return io;}
+ inline void PushID(const void* p){id=p;}inline void PopID(){}inline ImVec2 GetCursorScreenPos(){return{16,16};}inline ImVec2 GetContentRegionAvail(){return{428,500};}inline float GetTextLineHeight(){return 19;}inline bool Selectable(const char*,bool,int,ImVec2){if(id==click&&click){click=nullptr;return true;}return false;}
+-inline ImDrawList* GetWindowDrawList(){return &draw;}inline bool IsItemHovered(){return false;}inline bool IsItemFocused(){return id==focused&&focused;}inline bool IsItemActive(){return active;}inline bool IsAnyItemActive(){return active;}inline void PushStyleColor(int,ImVec4){}inline void PopStyleColor(){}inline float GetFontSize(){return 19;}inline ImFont* GetFont(){static ImFont f;return &f;}inline void Dummy(ImVec2){}inline void SetNextWindowFocus(){++focusRequests;}inline void SetKeyboardFocusHere(int){++focusRequests;}template<class...T>void TextWrapped(const char*,T...){}inline ImVec2 CalcTextSize(const char* s){return{float(std::string(s).size()*9),19};}inline ImU32 GetColorU32(int){return 1;}inline float GetFrameHeight(){return 39;}inline void SetCursorScreenPos(ImVec2){}inline void SetNextItemWidth(float){}
++inline ImDrawList* GetWindowDrawList(){return &draw;}inline bool IsItemHovered(){return false;}inline bool IsItemFocused(){return id==focused&&focused;}inline bool IsItemActive(){return active;}inline bool IsAnyItemActive(){return active;}inline void PushStyleColor(int,ImVec4){}inline void PopStyleColor(){}inline float GetFontSize(){return 19;}inline ImFont* GetFont(){static ImFont f;return &f;}inline void Dummy(ImVec2){}inline void SetNextWindowFocus(){++focusRequests;}inline void SetKeyboardFocusHere(int){++focusRequests;}template<class...T>void TextWrapped(const char*,T...){}inline ImVec2 CalcTextSize(const char* s){return{float(std::string(s).size()*9),19};}inline ImU32 GetColorU32(int){return 1;}inline ImU32 GetColorU32(const ImVec4&){return 2;}inline float GetFrameHeight(){return 39;}inline void SetCursorScreenPos(ImVec2){}inline void SetNextItemWidth(float){}
+ inline void SetNextWindowSize(ImVec2,int){}inline void SetNextWindowPos(ImVec2,int){}inline void SetNextWindowSizeConstraints(ImVec2,ImVec2){}inline bool Begin(const char*,bool*,int){++windowBalance;return begin;}inline void End(){--windowBalance;}inline void TextUnformatted(const char*){}inline void SameLine(){}inline void SetCursorPosX(float){}inline float GetWindowWidth(){return 460;}template<class...T>void TextDisabled(const char*,T...){}inline void Separator(){}inline void Spacing(){}
+ inline bool Button(const char*,ImVec2){bool a=back;back=false;return a;}inline bool IsPopupOpen(const char*,int){return popup;}inline bool IsWindowFocused(int){return true;}inline bool IsKeyPressed(int k,bool){if(k==nextKey&&nextKey){nextKey=0;return true;}if(k==ImGuiKey_Backspace){bool a=key;key=false;return a;}return false;}inline bool BeginChild(const char*,ImVec2,bool,int=0){++childBalance;return child;}inline void EndChild(){--childBalance;}inline void PushFont(ImFont*){}inline void PopFont(){}
++}
++namespace ImGui {
++inline bool BeginCombo(const char*,const char*){return false;}
++inline void EndCombo(){}
++inline bool Selectable(const char*,bool){return false;}
++inline bool Button(const char*){return false;}
++inline bool InputText(const char*,char*,size_t){return false;}
++inline bool ColorEdit4(const char*,float*){return false;}
++inline bool SliderFloat(const char*,float*,float,float,const char*){return false;}
+ }
+ namespace YimMenu{
+ struct Category{std::string m_Name="Main";void Draw(){++ImGui::categoryDraws;}};
+diff --git "a/tests/modern-list/README.md" "b/tests/modern-list/README.md"
+--- "a/tests/modern-list/README.md"
++++ "b/tests/modern-list/README.md"
+@@ -1,12 +1,14 @@
+-# Isolated Modern List mock tests
++# Isolated list UI and theme tests
+ 
+-These compile the real list renderer and pure GUI input-policy header against fake ImGui/frontend types. They do not verify the real ImGui ABI, Windows build, GTA input, or in-game behavior.
+-
+-From the repository root on a machine with GCC:
++Run from repository root (GCC, C++17):
+ 
+ ```sh
+-g++ -std=c++17 -Itests/modern-list -Itests/modern-list/mock-include tests/modern-list/main.cpp -o /tmp/yim-list-test
++g++ -std=c++17 -Wall -Wextra -Werror -Itests/modern-list -Itests/modern-list/mock-include tests/modern-list/main.cpp -o /tmp/yim-list-test
+ /tmp/yim-list-test
++g++ -std=c++17 -Wall -Wextra -Werror -Isrc -Itests/modern-list -Itests/modern-list/mock-include tests/modern-list/theme-input.cpp -o /tmp/yim-theme-test
++/tmp/yim-theme-test /tmp/yim-test-themes
++cp -a /tmp/yim-test-themes /tmp/yim-test-themes-restart
++/tmp/yim-theme-test /tmp/yim-test-themes-restart
+ ```
+ 
+-The test source is outside the project's `src` tree and is not included in the DLL build.
++Use fresh directories on each test run. Tests compile the actual renderer, editor and theme storage source against mock ImGui/frontend types. They also test the native control constants and key mapping. They do NOT simulate GTA, Windows window messages, actual ImGui behavior or a Windows DLL build.
+diff --git "a/tests/modern-list/main.cpp" "b/tests/modern-list/main.cpp"
+--- "a/tests/modern-list/main.cpp"
++++ "b/tests/modern-list/main.cpp"
+@@ -1,4 +1,6 @@
+ #include "Mock.hpp"
++#include "../../src/core/frontend/manager/styles/ModernList/ListTheme.cpp"
++#include "../../src/core/frontend/manager/styles/ModernList/ListThemeEditor.cpp"
+ #include "../../src/core/frontend/manager/styles/ModernList/ModernList.cpp"
+ #include "../../src/game/frontend/GUIInputPolicy.hpp"
+ int main() {
+diff --git "a/tests/modern-list/mock-include/imgui.h" "b/tests/modern-list/mock-include/imgui.h"
+new file mode 100644
+--- /dev/null
++++ "b/tests/modern-list/mock-include/imgui.h"
+@@ -0,0 +1,2 @@
++#pragma once
++#include "Mock.hpp"
+diff --git "a/tests/modern-list/theme-input.cpp" "b/tests/modern-list/theme-input.cpp"
+new file mode 100644
+--- /dev/null
++++ "b/tests/modern-list/theme-input.cpp"
+@@ -0,0 +1,52 @@
++#include "Mock.hpp"
++#include "../../src/core/frontend/manager/styles/ModernList/ListTheme.cpp"
++#include "../../src/game/frontend/ListInputControls.hpp"
++#include "../../src/game/frontend/GUIInputPolicy.hpp"
++#include <set>
++int main(int argc, char** argv)
++{
++    using namespace YimMenu;
++    using namespace YimMenu::ListUI;
++    assert(argc == 2);
++    const std::filesystem::path folder(argv[1]);
++    InitializeThemes(folder);
++    if (std::string(argv[1]).find("restart") != std::string::npos)
++    {
++        assert(ActiveThemeName() == "My Test");
++        assert(std::abs(CurrentTheme().Width - 512) < 0.01f);
++        std::cout << "PASS: saved preset restored across process restart.\n"; return 0;
++    }
++    assert(std::filesystem::is_directory(folder));
++    assert(ThemeNames().size() == 3);
++    assert(ActiveThemeName() == "Cherax Violet");
++    CurrentTheme().Width = 512; CurrentTheme().Accent = ImVec4(.2f, .7f, .9f, 1);
++    assert(SaveTheme("My Test"));
++    CurrentTheme().Width = 600;
++    assert(LoadTheme("My Test")); assert(CurrentTheme().Width == 512);
++    assert(ThemeNames().size() == 4);
++    for (const auto* name : {"../escape", "a/b", "", "x.", "CON", "LPT1", "a\\b", " bad", "bad "})
++        assert(!SaveTheme(name));
++    assert(!LoadTheme("missing")); assert(CurrentTheme().Width == 512);
++    for (const auto* content : {"Accent 1 2 3 4", "Width 2", "Height nan", "Unknown 1", "Text 1 1", "Rounding 2 extra"})
++    {
++        std::ofstream(folder / "Bad.theme") << content;
++        assert(!LoadTheme("Bad")); assert(CurrentTheme().Width == 512);
++    }
++    std::ofstream(folder / "Huge.theme") << std::string(17000, 'x');
++    assert(!LoadTheme("Huge"));
++    assert(LoadTheme("Midnight Blue"));
++    assert(LoadTheme("My Test"));
++    // Never overwrite existing preset files during initialize.
++    const auto size = std::filesystem::file_size(folder / "My Test.theme");
++    InitializeThemes(folder); assert(std::filesystem::file_size(folder / "My Test.theme") == size);
++    std::set<int> unique;
++    for (auto control : ListInputControls) assert(unique.insert(static_cast<int>(control)).second);
++    assert(unique.count(static_cast<int>(ControllerInputs::INPUT_PHONE)));
++    assert(unique.count(static_cast<int>(ControllerInputs::INPUT_CELLPHONE_SCROLL_BACKWARD)));
++    for (auto control : {ControllerInputs::INPUT_MOVE_LR, ControllerInputs::INPUT_MOVE_UD,
++        ControllerInputs::INPUT_JUMP, ControllerInputs::INPUT_SPRINT, ControllerInputs::INPUT_LOOK_LR})
++        assert(!unique.count(static_cast<int>(control)));
++    for (auto key : {0x25,0x26,0x27,0x28,0x0d,0x08}) assert(IsListNavigationKey(key));
++    for (auto key : {0x20,0x41,0x57,0x2d,0x09}) assert(!IsListNavigationKey(key));
++    std::cout << "PASS: theme initialization/list/save/load, path validation, malformed/oversize rejection, gameplay exclusions and navigation keys.\n";
++}

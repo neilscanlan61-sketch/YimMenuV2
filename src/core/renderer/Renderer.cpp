@@ -1,6 +1,7 @@
 #include "core/frontend/manager/UIManager.hpp"
 #include "game/frontend/GUI.hpp"
 #include "game/frontend/GUIInputPolicy.hpp"
+#include "game/frontend/ListInputControls.hpp"
 #include "Renderer.hpp"
 #include "D3D12Hook.hpp"
 #include "core/frontend/manager/styles/Themes.hpp"
@@ -342,6 +343,10 @@ namespace YimMenu
                 && GetGUIInputPolicy(GUI::IsOpen(), UIManager::IsListStyle(), GUI::IsOnboarding(), ImGui::GetIO().WantTextInput).PreserveGameplay
                 && !ImGui::IsAnyItemActive();
             if (!gameplaySpace) ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+            // ImGui sees the keys first; GTA's window must not also open/navigate the phone.
+            // Gameplay controls polled outside WndProc are reserved by GUI::RunScriptImpl.
+            if (keyMessage && GUI::IsOpen() && UIManager::IsListStyle() && !GUI::IsOnboarding()
+                && IsListNavigationKey(wparam)) return 0;
         }
 
         if (GetInstance().m_OriginalWndProc)

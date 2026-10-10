@@ -10,7 +10,7 @@ namespace YimMenu::Features
 		{1, "Modern"},
 		{2, "Modern (Vertical)"},
 	    {3, "Modern (Modular)"},
-	    {4, "Modern List"},
+	    {4, "Cherax-inspired List"},
 	};
 
 	// Expose as global reference so other code can use it

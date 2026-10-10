@@ -1,12 +1,14 @@
-# Isolated Modern List mock tests
+# Isolated list UI and theme tests
 
-These compile the real list renderer and pure GUI input-policy header against fake ImGui/frontend types. They do not verify the real ImGui ABI, Windows build, GTA input, or in-game behavior.
-
-From the repository root on a machine with GCC:
+Run from repository root (GCC, C++17):
 
 ```sh
-g++ -std=c++17 -Itests/modern-list -Itests/modern-list/mock-include tests/modern-list/main.cpp -o /tmp/yim-list-test
+g++ -std=c++17 -Wall -Wextra -Werror -Itests/modern-list -Itests/modern-list/mock-include tests/modern-list/main.cpp -o /tmp/yim-list-test
 /tmp/yim-list-test
+g++ -std=c++17 -Wall -Wextra -Werror -Isrc -Itests/modern-list -Itests/modern-list/mock-include tests/modern-list/theme-input.cpp -o /tmp/yim-theme-test
+/tmp/yim-theme-test /tmp/yim-test-themes
+cp -a /tmp/yim-test-themes /tmp/yim-test-themes-restart
+/tmp/yim-theme-test /tmp/yim-test-themes-restart
 ```
 
-The test source is outside the project's `src` tree and is not included in the DLL build.
+Use fresh directories on each test run. Tests compile the actual renderer, editor and theme storage source against mock ImGui/frontend types. They also test the native control constants and key mapping. They do NOT simulate GTA, Windows window messages, actual ImGui behavior or a Windows DLL build.

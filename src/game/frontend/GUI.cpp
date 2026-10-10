@@ -1,4 +1,5 @@
 #include "GUIInputPolicy.hpp"
+#include "ListInputControls.hpp"
 #include "core/frontend/manager/UIManager.hpp"
 #include "GUI.hpp"
 #include "Menu.hpp"
@@ -113,18 +114,17 @@ namespace YimMenu
 		{
 			if (Renderer::IsInitialized() && GUI::IsOpen())
 			{
+				if (UIManager::IsListStyle() && !GUI::IsOnboarding())
+                {
+                    for (int group = 0; group < 3; ++group)
+                        for (const auto control : ListInputControls)
+                            PAD::DISABLE_CONTROL_ACTION(group, static_cast<int>(control), true);
+                }
 				if (UIManager::ShowingContentWindow())
 				{
                     if (GetGUIInputPolicy(GUI::IsOpen(), UIManager::IsListStyle(), GUI::IsOnboarding(), GUI::IsUsingKeyboard()).PreserveGameplay)
                     {
-                        // Keep WASD, sprint/jump, driving and camera input enabled.
-                        // Prevent arrow/Enter menu navigation from also operating frontend UI.
-                        static constexpr ControllerInputs listControls[] = {
-                            ControllerInputs::INPUT_FRONTEND_UP, ControllerInputs::INPUT_FRONTEND_DOWN,
-                            ControllerInputs::INPUT_FRONTEND_LEFT, ControllerInputs::INPUT_FRONTEND_RIGHT,
-                            ControllerInputs::INPUT_FRONTEND_ACCEPT, ControllerInputs::INPUT_FRONTEND_CANCEL};
-                        for (const auto control : listControls)
-                            PAD::DISABLE_CONTROL_ACTION(0, static_cast<int>(control), true);
+                        // Phone/frontend reservation already applied above. Preserve gameplay.
                     }
                     else if (GUI::IsUsingKeyboard() && PAD::IS_USING_KEYBOARD_AND_MOUSE(0))
 					{

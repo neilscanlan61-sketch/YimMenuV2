@@ -1,3 +1,5 @@
+> **UI update:** See [CHERAX_LIST_README.md](CHERAX_LIST_README.md) for the Cherax-inspired list UI, phone-input changes, custom theme folder, build steps and testing limitations. This archive contains source only, not a compiled DLL.
+
 # YimMenuV2
 
 Experimental menu for GTA 5: Enhanced

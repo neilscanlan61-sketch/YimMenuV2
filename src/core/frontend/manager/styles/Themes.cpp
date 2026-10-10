@@ -1,4 +1,6 @@
 #include "Themes.hpp"
+#include "ModernList/ListTheme.hpp"
+#include "core/filemgr/FileMgr.hpp"
 #include "core/commands/ColorCommand.hpp"
 #include "game/frontend/submenus/Settings/GUISettings.hpp"
 
@@ -92,6 +94,8 @@ namespace YimMenu
 
 	void SetupStyle()
 	{
+		ListUI::InitializeThemes(FileMgr::GetProjectFolder("themes/list-ui").Path());
+
 		// Apply default style first
 		DefaultStyle();
 

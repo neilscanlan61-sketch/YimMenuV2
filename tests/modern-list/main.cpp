@@ -1,4 +1,6 @@
 #include "Mock.hpp"
+#include "../../src/core/frontend/manager/styles/ModernList/ListTheme.cpp"
+#include "../../src/core/frontend/manager/styles/ModernList/ListThemeEditor.cpp"
 #include "../../src/core/frontend/manager/styles/ModernList/ModernList.cpp"
 #include "../../src/game/frontend/GUIInputPolicy.hpp"
 int main() {
