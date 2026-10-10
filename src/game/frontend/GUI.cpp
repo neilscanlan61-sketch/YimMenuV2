@@ -106,7 +106,7 @@ namespace YimMenu
 			{
 				if (UIManager::ShowingContentWindow())
 				{
-					if (GUI::IsUsingKeyboard() && PAD::IS_USING_KEYBOARD_AND_MOUSE(0))
+					if ((GUI::IsUsingKeyboard() || UIManager::IsListStyle()) && PAD::IS_USING_KEYBOARD_AND_MOUSE(0))
 					{
 						PAD::DISABLE_ALL_CONTROL_ACTIONS(0);
 					}

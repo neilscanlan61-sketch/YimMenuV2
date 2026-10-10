@@ -1,3 +1,4 @@
+#include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 #include "Items.hpp"
 #include "core/commands/Commands.hpp"
 #include "core/commands/Command.hpp"
@@ -21,7 +22,14 @@ namespace YimMenu
 		}
 
 		bool enabled = m_Command->GetState();
-		if (ImGui::Toggle(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data(), &enabled))
+		bool changed = false;
+        if (ListUI::Active())
+        {
+            changed = ListUI::Row(m_Command, m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data(), enabled ? "ON" : "OFF", enabled);
+            if (changed) enabled = !enabled;
+        }
+        else changed = ImGui::Toggle(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data(), &enabled);
+        if (changed)
 			m_Command->SetState(enabled);
 
 		// TODO: refactor this

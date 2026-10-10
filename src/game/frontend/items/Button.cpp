@@ -1,3 +1,4 @@
+#include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 #include "Items.hpp"
 #include "core/backend/FiberPool.hpp"
 
@@ -13,13 +14,15 @@ namespace YimMenu
 
 	void Button::Draw()
 	{
-		if (ImGui::Button(m_Name.data(), m_Size))
+		const bool pressed = ListUI::Active()
+            ? ListUI::Row(this, m_Name.data(), "RUN")
+            : ImGui::Button(m_Name.data(), m_Size);
+        if (pressed)
 		{
 			if (m_OnClick != nullptr)
 			{
-				FiberPool::Push([&] {
-					m_OnClick();
-				});
+				auto callback = m_OnClick;
+				FiberPool::Push([callback] { callback(); });
 			}
 		}
 	}

@@ -1,3 +1,4 @@
+#include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 #include "Items.hpp"
 #include "core/commands/Command.hpp"
 #include "core/commands/Commands.hpp"
@@ -22,6 +23,28 @@ namespace YimMenu
 
 		int current_val = m_Command->GetState();
 		auto& list = m_Command->GetList();
+        if (ListUI::Active())
+        {
+            const char* preview = "Select...";
+            for (const auto& entry : list)
+                if (entry.first == current_val) preview = entry.second;
+            auto label = m_LabelOverride.value_or(m_Command->GetLabel());
+            if (label.starts_with("##")) label = m_Command->GetLabel();
+            ImGui::PushID(m_Command);
+            ListUI::BeginValue(label.c_str());
+            if (ImGui::BeginCombo("##value", preview))
+            {
+                for (const auto& entry : list)
+                {
+                    if (ImGui::Selectable(entry.second, entry.first == current_val))
+                        m_Command->SetState(entry.first);
+                    if (entry.first == current_val) ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::PopID();
+            return;
+        }
 		const char* largest_string = "";
 		std::size_t largest_string_len = 0;
 

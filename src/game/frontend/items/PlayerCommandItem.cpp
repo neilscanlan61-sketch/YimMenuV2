@@ -1,3 +1,4 @@
+#include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 #include "Items.hpp"
 #include "game/commands/PlayerCommand.hpp"
 #include "core/commands/Commands.hpp"
@@ -20,7 +21,10 @@ namespace YimMenu
 			return;
 		}
 
-		if (ImGui::Button(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data()))
+		const bool pressed = ListUI::Active()
+            ? ListUI::Row(m_Command, m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data(), "RUN")
+            : ImGui::Button(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data());
+        if (pressed)
 		{
 			FiberPool::Push([this] {
 				if (Players::GetSelected().IsValid())

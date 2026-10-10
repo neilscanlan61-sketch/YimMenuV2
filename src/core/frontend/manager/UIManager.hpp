@@ -12,6 +12,7 @@ namespace YimMenu
 		Modern,
 		ModernV,
 		Modular,
+		ModernList,
 	};
 
 	class UIManager
@@ -31,6 +32,8 @@ namespace YimMenu
 		{
 			GetInstance().SetActiveSubmenuImpl(submenu);
 		}
+
+		static bool IsListStyle();
 
 		static void Draw()
 		{

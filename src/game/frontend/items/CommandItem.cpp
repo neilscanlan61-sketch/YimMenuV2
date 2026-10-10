@@ -1,3 +1,4 @@
+#include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 #include "Items.hpp"
 #include "core/commands/Commands.hpp"
 #include "core/commands/Command.hpp"
@@ -21,7 +22,10 @@ namespace YimMenu
 			return;
 		}
 
-		if (ImGui::Button(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data()))
+		const bool pressed = ListUI::Active()
+            ? ListUI::Row(m_Command, m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data(), "RUN")
+            : ImGui::Button(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data());
+        if (pressed)
 		{
 			// Capture the command by value, not 'this'. This item may be drawn from a 
 			// Lua command handle's :draw()) and gets destroyed before the FiberPool task runs.

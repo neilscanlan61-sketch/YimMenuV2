@@ -10,6 +10,7 @@ namespace YimMenu::Features
 		{1, "Modern"},
 		{2, "Modern (Vertical)"},
 	    {3, "Modern (Modular)"},
+	    {4, "Modern List"},
 	};
 
 	// Expose as global reference so other code can use it
@@ -18,7 +19,7 @@ namespace YimMenu::Features
 		"UI Style",
 		"Choose the UI style",
 		g_StyleOptions,
-		0};
+		4};
 }
 
 namespace YimMenu
@@ -44,6 +45,11 @@ namespace YimMenu
 		m_ActiveSubmenu = submenu;
 	}
 
+	bool UIManager::IsListStyle()
+	{
+		return Features::_StyleSelector.GetState() == static_cast<int>(UITheme::ModernList);
+	}
+
 	void UIManager::DrawImpl()
 	{
 		int selectedIndex = Features::_StyleSelector.GetState();
@@ -62,6 +68,9 @@ namespace YimMenu
 			break;
 		case UITheme::Modular:
 			RenderModularTheme();
+			break;
+		case UITheme::ModernList:
+			RenderModernListTheme();
 			break;
 		default:
 			RenderClassicTheme(); // Default theme

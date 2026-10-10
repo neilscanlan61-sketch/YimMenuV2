@@ -1,3 +1,4 @@
+#include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 #include "Items.hpp"
 #include "core/commands/Command.hpp"
 #include "core/commands/Commands.hpp"
@@ -14,6 +15,23 @@ namespace YimMenu
 
 	void Group::Draw()
 	{
+        if (ListUI::Active())
+        {
+            ImGui::PushID(this);
+            const bool show = m_Name.empty() || ImGui::CollapsingHeader(m_Name.c_str(), ImGuiTreeNodeFlags_DefaultOpen);
+            if (show)
+            {
+                for (const auto& item : m_Items)
+                {
+                    if (!item || !item->CanDraw()) continue;
+                    ImGui::PushID(item.get());
+                    item->Draw();
+                    ImGui::PopID();
+                }
+            }
+            ImGui::PopID();
+            return;
+        }
 		if (!m_Name.empty())
 		{
 			ImGui::PushFont(Menu::Font::g_ChildTitleFont);
