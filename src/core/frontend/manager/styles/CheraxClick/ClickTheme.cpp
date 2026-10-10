@@ -27,7 +27,10 @@ namespace YimMenu::ClickUI
     static constexpr FloatField sizes[] = {
         {"Width", &Theme::Width, 560, 1280}, {"Height", &Theme::Height, 420, 1000},
         {"RowHeight", &Theme::RowHeight, 36, 64}, {"Rounding", &Theme::Rounding, 0, 16},
-        {"PlayerWidth", &Theme::PlayerWidth, 160, 280}, {"Scanlines", &Theme::Scanlines, 0, 0.25f}};
+        {"PlayerWidth", &Theme::PlayerWidth, 160, 280}, {"Scanlines", &Theme::Scanlines, 0, 0.25f},
+        {"BackgroundEnabled", &Theme::BackgroundEnabled, 0, 1},
+        {"BackgroundOpacity", &Theme::BackgroundOpacity, 0, 1},
+        {"BackgroundSpeed", &Theme::BackgroundSpeed, 0.1f, 3}};
 
     static bool ValidName(const std::string& name)
     {
@@ -176,7 +179,19 @@ namespace YimMenu::ClickUI
                 const auto path = folder / (std::string(preset.first) + ".theme");
                 if (!std::filesystem::exists(path)) Write(path, preset.second);
             }
-            std::string selected = "Purple Glow";
+            Theme compact;
+            compact.Accent=ImVec4(220.0f/255,45.0f/255,45.0f/255,1);
+            compact.Background=ImVec4(20.0f/255,20.0f/255,23.0f/255,240.0f/255);
+            compact.BackgroundLow=ImVec4(70.0f/255,25.0f/255,25.0f/255,210.0f/255);
+            compact.Surface=ImVec4(0,0,0,0.78f); compact.Button=ImVec4(.09f,.09f,.09f,1);
+            compact.ButtonHover=ImVec4(.86f,.176f,.196f,.59f);
+            compact.Border=ImVec4(.86f,.176f,.196f,.71f); compact.Header=ImVec4(.396f,.02f,.02f,.72f);
+            compact.Selection=ImVec4(.86f,.176f,.196f,.39f);
+            compact.Text=ImVec4(.941f,.941f,.941f,1); compact.Muted=ImVec4(.65f,.65f,.65f,1);
+            compact.Rounding=5; compact.BackgroundEnabled=1; compact.Scanlines=0;
+            const auto compactFile=folder / "Rockstar Compact.theme";
+            if (!std::filesystem::exists(compactFile)) Write(compactFile,compact);
+            std::string selected = "Rockstar Compact";
             std::ifstream active(folder / "active.txt");
             if (active) std::getline(active, selected);
             s_Initialized = true;

@@ -12,7 +12,7 @@ namespace YimMenu::Features
 		{2, "Modern (Vertical)"},
 	    {3, "Modern (Modular)"},
 	    {4, "Cherax-inspired List"},
-        {5, "Cherax Click (Screenshots)"},
+        {5, "Rockstar Tool (Compact Click)"},
 	};
 
 	// Expose as global reference so other code can use it

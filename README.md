@@ -1,3 +1,5 @@
+> **Latest UI revision: Rockstar Tool (Compact Click)** — see [ROCKSTAR_TOOL_README.md](ROCKSTAR_TOOL_README.md) for GIF setup, compact presets and the Savage camera workaround. Source-only; Windows/game integration is unverified. This YimMenuV2 fork is not an official Rockstar Games product.
+
 > **Latest UI revision:** See [CHERAX_CLICK_README.md](CHERAX_CLICK_README.md) for the mouse-clickable screenshot-inspired interface, preset folder, build steps and limitations. Source only; no DLL included.
 
 > **UI update:** See [CHERAX_LIST_README.md](CHERAX_LIST_README.md) for the Cherax-inspired list UI, phone-input changes, custom theme folder, build steps and testing limitations. This archive contains source only, not a compiled DLL.

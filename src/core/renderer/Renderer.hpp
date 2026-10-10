@@ -1,5 +1,6 @@
 #pragma once
 #include <d3d12.h>
+#include "AnimatedBackground.hpp"
 #include <dxgi1_4.h>
 #include <wrl/client.h>
 
@@ -46,6 +47,11 @@ namespace YimMenu
 			GetInstance().m_FontsUpdated = true;
 		}
 
+        static void RequestBackgroundReload() { GetInstance().m_ReloadBackground = true; }
+        static const std::string& BackgroundStatus() { return GetInstance().m_Background.Status(); }
+        static bool DrawAnimatedBackground(ImDrawList* draw, ImVec2 position, ImVec2 size, float opacity, float rounding)
+        { return GetInstance().m_Background.Draw(draw,position,size,opacity,rounding); }
+
     private:
         template <typename T>
         using ComPtr = Microsoft::WRL::ComPtr<T>;
@@ -79,6 +85,8 @@ namespace YimMenu
         void DestroyImpl();
         bool InitInternal();
         void Render();
+        bool WaitForGpu();
+        void PrepareBackground(ID3D12Device* device, unsigned index);
         void Resize();
         bool CreateDeviceObjects(ID3D12Device* device, ID3D12CommandQueue* queue, UINT bufferCount);
         void CreateRenderTargets(IDXGISwapChain3* swapChain);
@@ -96,6 +104,11 @@ namespace YimMenu
         ComPtr<ID3D12DescriptorHeap> m_RtvHeap = {};
         ComPtr<ID3D12DescriptorHeap> m_SrvHeap = {};
         SrvHeapAllocator m_SrvAllocator = {};
+        AnimatedBackground m_Background;
+        D3D12_CPU_DESCRIPTOR_HANDLE m_BackgroundCpu{};
+        D3D12_GPU_DESCRIPTOR_HANDLE m_BackgroundGpu{};
+        std::string m_BackgroundKey;
+        bool m_ReloadBackground = true;
         std::vector<FrameContext> m_FrameContexts = {};
         std::vector<ComPtr<ID3D12Resource>> m_BackBuffers = {};
         std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_RtvHandles = {};

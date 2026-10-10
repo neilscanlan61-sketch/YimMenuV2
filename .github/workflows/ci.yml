@@ -24,14 +24,14 @@ jobs:
         run: cmake --build ./build --config RelWithDebInfo --target YimMenuV2 --
 
       - name: Check if DLL got built
-        run: if (-Not (Test-Path -path "build/YimMenuV2.dll")) {throw 1}
+        run: if (-Not (Test-Path -path "build/RockstarTool.dll")) {throw 1}
 
-      - name: Rename DLL to YimMenuV2-dev-{GITHUB_SHA}.dll
+      - name: Rename DLL to RockstarTool-dev-{GITHUB_SHA}.dll
         run: |
-          del YimMenuV2-dev-*.dll
-          del YimMenuV2-dev-*.pdb
-          ren YimMenuV2.dll YimMenuV2-dev-${{github.sha}}.dll
-          ren YimMenuV2.pdb YimMenuV2-dev-${{github.sha}}.pdb
+          del RockstarTool-dev-*.dll
+          del RockstarTool-dev-*.pdb
+          ren RockstarTool.dll RockstarTool-dev-${{github.sha}}.dll
+          ren RockstarTool.pdb RockstarTool-dev-${{github.sha}}.pdb
         working-directory: build/
 
       - name: Upload Artifact
@@ -39,8 +39,8 @@ jobs:
         with:
           name: RelWithDebInfo-Native-Clang
           path: |
-            build/YimMenuV2-dev-*.dll
-            build/YimMenuV2-dev-*.pdb
+            build/RockstarTool-dev-*.dll
+            build/RockstarTool-dev-*.pdb
 
   cross-compilation:
     runs-on: ubuntu-latest
@@ -63,12 +63,12 @@ jobs:
         run: cmake --build ./build --config RelWithDebInfo --target YimMenuV2 --
 
       - name: Check if DLL got built
-        run: if [ ! -f build/libYimMenuV2.dll ]; then exit 1; fi
+        run: if [ ! -f build/libRockstarTool.dll ]; then exit 1; fi
 
-      - name: Rename DLL to libYimMenuV2-dev-{GITHUB_SHA}.dll
+      - name: Rename DLL to libRockstarTool-dev-{GITHUB_SHA}.dll
         run: |
-          mv libYimMenuV2.dll libYimMenuV2-dev-${{github.sha}}.dll
-          mv libYimMenuV2.pdb libYimMenuV2-dev-${{github.sha}}.pdb
+          mv libRockstarTool.dll libRockstarTool-dev-${{github.sha}}.dll
+          mv libRockstarTool.pdb libRockstarTool-dev-${{github.sha}}.pdb
         working-directory: build/
 
       - name: Upload Artifact
@@ -76,5 +76,5 @@ jobs:
         with:
           name: RelWithDebInfo-Cross
           path: |
-            build/libYimMenuV2-dev-*.dll
-            build/libYimMenuV2-dev-*.pdb
+            build/libRockstarTool-dev-*.dll
+            build/libRockstarTool-dev-*.pdb

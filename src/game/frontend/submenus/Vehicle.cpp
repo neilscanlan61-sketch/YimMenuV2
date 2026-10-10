@@ -30,6 +30,7 @@ namespace YimMenu::Submenus
 		tools->AddItem(std::make_shared<CommandItem>("despawnpv"_J));
 		tools->AddItem(std::make_shared<CommandItem>("savepersonalvehicle"_J));
 
+		misc->AddItem(std::make_shared<BoolCommandItem>("savagecameraguard"_J));
 		misc->AddItem(std::make_shared<BoolCommandItem>("speedometer"_J));
 		misc->AddItem(std::make_shared<BoolCommandItem>("seatbelt"_J));
 		misc->AddItem(std::make_shared<BoolCommandItem>("lowervehiclestance"_J, "Lower Stance"));

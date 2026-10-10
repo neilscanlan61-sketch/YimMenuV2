@@ -1,0 +1,34 @@
+.github/workflows/ci.yml
+.github/workflows/nightly.yml
+CMakeLists.txt
+README.md
+ROCKSTAR_TOOL_README.md
+docs/rockstar-tool/Rockstar Compact.gif
+docs/rockstar-tool/Rockstar Compact.theme
+docs/rockstar-tool/Rojo Animated.gif
+docs/rockstar-tool/Rojo Animated.theme
+docs/rockstar-tool/compact-desktop.png
+docs/rockstar-tool/compact-mobile.png
+docs/rockstar-tool/editor-desktop.png
+docs/rockstar-tool/editor-mobile.png
+docs/rockstar-tool/rockstar-compact-preview.html
+docs/rockstar-tool/rockstar-editor-preview.html
+src/core/frontend/manager/UIManager.cpp
+src/core/frontend/manager/styles/CheraxClick/CheraxClick.cpp
+src/core/frontend/manager/styles/CheraxClick/ClickTheme.cpp
+src/core/frontend/manager/styles/CheraxClick/ClickTheme.hpp
+src/core/frontend/manager/styles/CheraxClick/ClickThemeEditor.cpp
+src/core/renderer/AnimatedBackground.cpp
+src/core/renderer/AnimatedBackground.hpp
+src/core/renderer/GifAnimation.hpp
+src/core/renderer/Renderer.cpp
+src/core/renderer/Renderer.hpp
+src/game/features/vehicle/SavageCamera.cpp
+src/game/features/vehicle/SavageCameraPolicy.hpp
+src/game/frontend/GUI.cpp
+src/game/frontend/submenus/Vehicle.cpp
+tests/click-ui/Mock.hpp
+tests/click-ui/main.cpp
+tests/click-ui/mock-include/core/renderer/Renderer.hpp
+tests/rockstar-animation/README.md
+tests/rockstar-animation/main.cpp

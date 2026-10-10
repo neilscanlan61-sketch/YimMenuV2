@@ -19,10 +19,13 @@ namespace YimMenu::ClickUI
         ImVec4 BackgroundLow{0.53f, 0.0f, 0.90f, 1.0f};
         ImVec4 Button{0.55f, 0.05f, 0.48f, 1.0f};
         ImVec4 ButtonHover{0.75f, 0.12f, 0.65f, 1.0f};
-        float Scanlines = 0.08f;
-        float PlayerWidth = 210.0f;
-        float Width = 860.0f;
-        float Height = 740.0f;
+        float Scanlines = 0.025f;
+        float BackgroundEnabled = 0.0f;
+        float BackgroundOpacity = 0.35f;
+        float BackgroundSpeed = 1.0f;
+        float PlayerWidth = 180.0f;
+        float Width = 720.0f;
+        float Height = 560.0f;
         float RowHeight = 44.0f;
         float Rounding = 7.0f;
     };

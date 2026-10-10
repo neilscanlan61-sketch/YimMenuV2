@@ -121,7 +121,10 @@ namespace YimMenu
                         for (const auto control : ListInputControls)
                             PAD::DISABLE_CONTROL_ACTION(group, static_cast<int>(control), true);
                 }
-				if (UIManager::ShowingContentWindow())
+				if (UIManager::IsClickStyle() && !GUI::IsOnboarding())
+                    for (int group=0;group<3;++group)
+                        PAD::DISABLE_CONTROL_ACTION(group,static_cast<int>(ControllerInputs::INPUT_NEXT_CAMERA),true);
+                if (UIManager::ShowingContentWindow())
 				{
                     if (GetGUIInputPolicy(GUI::IsOpen(), UIManager::IsListStyle(), GUI::IsOnboarding(), GUI::IsUsingKeyboard()).PreserveGameplay)
                     {

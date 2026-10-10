@@ -1,4 +1,5 @@
 #include "ClickTheme.hpp"
+#include "core/renderer/Renderer.hpp"
 #include <cstring>
 
 namespace YimMenu::ClickUI
@@ -38,8 +39,16 @@ namespace YimMenu::ClickUI
         ImGui::ColorEdit4("Bottom glow", &theme.BackgroundLow.x);
         ImGui::ColorEdit4("Buttons", &theme.Button.x);
         ImGui::ColorEdit4("Hovered buttons", &theme.ButtonHover.x);
+        bool animated = theme.BackgroundEnabled >= 0.5f;
+        if (ImGui::Checkbox("Animated GIF background", &animated)) theme.BackgroundEnabled = animated ? 1.0f : 0.0f;
+        ImGui::SliderFloat("Background opacity", &theme.BackgroundOpacity, 0, 1, "%.2f");
+        ImGui::SliderFloat("Animation speed", &theme.BackgroundSpeed, 0.1f, 3, "%.2fx");
+        ImGui::TextWrapped("GIF: <preset name>.gif, or background.gif, in the theme folder. Changes to an existing GIF require Reload GIF. Disable animation for reduced motion.");
+        if (ImGui::Button("Reload GIF")) Renderer::RequestBackgroundReload();
+        ImGui::TextWrapped("%s", Renderer::BackgroundStatus().c_str());
         ImGui::SliderFloat("Panel texture", &theme.Scanlines, 0, 0.25f, "%.2f");
         ImGui::SliderFloat("Player list width", &theme.PlayerWidth, 160, 280, "%.0f");
+        if (ImGui::Button("Use compact size")) { theme.Width=720; theme.Height=560; theme.PlayerWidth=180; }
         ImGui::SliderFloat("Panel width", &theme.Width, 560, 1280, "%.0f");
         ImGui::SliderFloat("Panel height", &theme.Height, 420, 1000, "%.0f");
         ImGui::SliderFloat("Corner rounding", &theme.Rounding, 0, 16, "%.0f");

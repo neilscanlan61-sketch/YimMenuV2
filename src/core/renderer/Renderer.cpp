@@ -3,6 +3,7 @@
 #include "game/frontend/GUIInputPolicy.hpp"
 #include "game/frontend/ListInputControls.hpp"
 #include "Renderer.hpp"
+#include "core/frontend/manager/styles/CheraxClick/ClickTheme.hpp"
 #include "D3D12Hook.hpp"
 #include "core/frontend/manager/styles/Themes.hpp"
 #include "game/frontend/Menu.hpp"
@@ -116,6 +117,7 @@ namespace YimMenu
             return;
 
         ReleaseRenderTargets();
+        m_Background.Reset(); m_BackgroundKey.clear(); m_ReloadBackground=true;
 
         if (m_Initialized)
         {
@@ -198,18 +200,18 @@ namespace YimMenu
 
             if (m_FontsUpdated)
             {
-				InvalidateDeviceObjects();
-				DXGI_SWAP_CHAIN_DESC desc{};
-				swapChain->GetDesc(&desc);
-				UINT bufferCount = desc.BufferCount > 0 ? desc.BufferCount : 3;
-				CreateDeviceObjects(device, queue, bufferCount);
-				ImGui_ImplDX12_CreateDeviceObjects();
+                if (!WaitForGpu()) { m_CommandList->Close(); return; }
+                // Font rebuilds must not replace the SRV heap/fence/command list
+                // while recording a frame or invalidate the GIF's descriptor.
+                ImGui_ImplDX12_InvalidateDeviceObjects();
+                ImGui_ImplDX12_CreateDeviceObjects();
 				m_FontsUpdated = false;
             }
 
 			ImGui_ImplDX12_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
+            PrepareBackground(device,index);
 
 			for (const auto& callback : m_RendererCallbacks | std::views::values)
 				callback();
@@ -238,6 +240,39 @@ namespace YimMenu
 		{
 			m_CommandList->Close();
 		}
+    }
+
+    bool Renderer::WaitForGpu()
+    {
+        if (!m_Fence || !m_FenceEvent) return true;
+        auto* queue = D3D12Hook::GetCommandQueue();
+        if (!queue) return false;
+        const auto value=++m_FenceValue;
+        if (FAILED(queue->Signal(m_Fence.Get(),value))) return false;
+        if (m_Fence->GetCompletedValue() >= value) return true;
+        if (FAILED(m_Fence->SetEventOnCompletion(value,m_FenceEvent))) return false;
+        return WaitForSingleObject(m_FenceEvent,INFINITE)==WAIT_OBJECT_0;
+    }
+
+    void Renderer::PrepareBackground(ID3D12Device* device, unsigned index)
+    {
+        const auto& theme=ClickUI::CurrentTheme();
+        const bool enabled=UIManager::IsClickStyle() && theme.BackgroundEnabled>=0.5f;
+        const bool playing=enabled && GUI::IsOpen() && !GUI::IsOnboarding();
+        m_Background.Tick(playing,theme.BackgroundSpeed);
+        if (!playing || ClickUI::ThemeFolder().empty()) return;
+        const auto key=ClickUI::ThemeFolder().string()+"/"+ClickUI::ActiveThemeName();
+        if (m_ReloadBackground || key!=m_BackgroundKey)
+        {
+            // All prior ImGui draws referencing this descriptor must finish.
+            if (!WaitForGpu()) return;
+            m_ReloadBackground=false; m_BackgroundKey=key;
+            auto file=ClickUI::ThemeFolder()/(ClickUI::ActiveThemeName()+".gif");
+            std::error_code error;
+            if (!std::filesystem::is_regular_file(file,error)) file=ClickUI::ThemeFolder()/"background.gif";
+            m_Background.Load(file); // Missing/invalid files fall back to the color theme.
+        }
+        m_Background.Prepare(device,m_CommandList.Get(),index,m_BufferCount,m_BackgroundCpu,m_BackgroundGpu);
     }
 
     void Renderer::Resize()
@@ -269,6 +304,7 @@ namespace YimMenu
             return false;
 
         m_SrvAllocator.Init(device, m_SrvHeap.Get());
+        m_SrvAllocator.Alloc(&m_BackgroundCpu,&m_BackgroundGpu);
 
         auto rtvIncrement = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
         auto rtvStart = m_RtvHeap->GetCPUDescriptorHandleForHeapStart();
@@ -314,15 +350,9 @@ namespace YimMenu
 
     void Renderer::ReleaseRenderTargets()
     {
-        if (m_Fence && m_FenceEvent)
-        {
-            auto value = ++m_FenceValue;
-            if (SUCCEEDED(m_Fence->Signal(value)) && m_Fence->GetCompletedValue() < value)
-            {
-                m_Fence->SetEventOnCompletion(value, m_FenceEvent);
-                WaitForSingleObject(m_FenceEvent, 2000);
-            }
-        }
+        // Signal on the command QUEUE, not the fence from the CPU. A CPU
+        // fence signal does not prove earlier GPU submissions have completed.
+        WaitForGpu();
 
         for (auto& bb : m_BackBuffers)
             bb.Reset();

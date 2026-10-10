@@ -20,6 +20,7 @@ file(GLOB_RECURSE SRC_FILES
 
 add_library(${PROJECT_NAME} MODULE ${SRC_FILES})
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 23)
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "RockstarTool")
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC "${SRC_DIR}/common.hpp")
 
@@ -48,6 +49,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     minhook
     nlohmann_json::nlohmann_json
     dbghelp
+    windowscodecs
+    ole32
 
     # ImGui dependencies
     $<IF:$<BOOL:${CROSSCOMPILE}>,d3dcompiler_47,d3dcompiler>

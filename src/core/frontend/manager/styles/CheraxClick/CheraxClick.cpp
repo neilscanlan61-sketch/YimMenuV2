@@ -1,4 +1,5 @@
 #include "CheraxClick.hpp"
+#include "core/renderer/Renderer.hpp"
 #include "ClickTheme.hpp"
 #include "ClickLayout.hpp"
 #include "ClickBookmarks.hpp"
@@ -170,11 +171,16 @@ namespace YimMenu
             draw->AddRectFilledMultiColor(windowPos, ImVec2(windowPos.x+windowSize.x,windowPos.y+windowSize.y),
                 ImGui::GetColorU32(theme.Background),ImGui::GetColorU32(theme.Background),
                 ImGui::GetColorU32(theme.BackgroundLow),ImGui::GetColorU32(theme.BackgroundLow));
+            if (theme.BackgroundEnabled >= 0.5f)
+                Renderer::DrawAnimatedBackground(draw,windowPos,windowSize,theme.BackgroundOpacity,theme.Rounding);
             const auto header = ImGui::GetCursorScreenPos(); const float available = ImGui::GetContentRegionAvail().x;
-            // Original YimMenu label rather than impersonating another product.
-            const float logoScale = available < 600 ? 1.0f : 1.4f;
+            // User-selected branding; retain YimMenu attribution in the project docs.
+            constexpr const char* brand = "ROCKSTAR TOOL";
+            const float unscaledLogoWidth = ImGui::CalcTextSize(brand).x;
+            const float logoArea = std::max(1.0f, available - 236);
+            const float logoScale = std::min(1.2f, std::max(0.5f, (logoArea - 16) / std::max(1.0f,unscaledLogoWidth)));
             const float logoSize = ImGui::GetFontSize()*logoScale;
-            const float logoWidth = ImGui::CalcTextSize("YIMMENU").x*logoScale;
+            const float logoWidth = unscaledLogoWidth*logoScale;
             ImGui::InvisibleButton("##header-drag",ImVec2(std::max(1.0f,available-220),36));
             if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
             {
@@ -182,8 +188,8 @@ namespace YimMenu
                 ImGui::SetWindowPos(ImVec2(std::clamp(windowPos.x+delta.x,0.0f,std::max(0.0f,io.DisplaySize.x-windowSize.x)),
                     std::clamp(windowPos.y+delta.y,0.0f,std::max(0.0f,io.DisplaySize.y-windowSize.y))));
             }
-            draw->AddText(ImGui::GetFont(),logoSize,ImVec2(header.x+(available < 600 ? 8.0f : (available-logoWidth)*0.5f),header.y+2),
-                ImGui::GetColorU32(theme.Text),"YIMMENU");
+            draw->AddText(ImGui::GetFont(),logoSize,ImVec2(header.x+std::max(8.0f,(logoArea-logoWidth)*0.5f),header.y+2),
+                ImGui::GetColorU32(theme.Text),brand);
             ImGui::SetCursorScreenPos(ImVec2(header.x+std::max(0.0f,available-214),header.y));
             ImGui::SetNextItemWidth(130);
             ImGui::InputTextWithHint("##click-search","Search sections",ClickUI::s_Search,sizeof(ClickUI::s_Search));

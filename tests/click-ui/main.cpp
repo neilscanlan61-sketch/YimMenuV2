@@ -9,10 +9,10 @@ int main(int argc,char** argv)
 {
  using namespace YimMenu;using namespace YimMenu::ClickUI;
  assert(argc==2);const std::filesystem::path folder(argv[1]);InitializeThemes(folder);
- assert(ThemeNames().size()==3);assert(ActiveThemeName()=="Purple Glow");
+ assert(ThemeNames().size()==4);assert(ActiveThemeName()=="Rockstar Compact");assert(CurrentTheme().Width==720&&CurrentTheme().Height==560&&CurrentTheme().BackgroundEnabled==1);
  CurrentTheme().Width=920;assert(SaveTheme("My Click"));assert(LoadTheme("Red Glow"));assert(LoadTheme("My Click"));assert(CurrentTheme().Width==920);
  const auto previous=CurrentTheme().Width;
- for(const char* bad:{"Width 1","Accent 1 1 1 2","PlayerWidth 999","Scanlines 0.9","Unknown 1"}) { std::ofstream(folder/"Bad.theme")<<bad;assert(!LoadTheme("Bad"));assert(CurrentTheme().Width==previous); }
+ for(const char* bad:{"Width 1","Accent 1 1 1 2","PlayerWidth 999","Scanlines 0.9","Unknown 1","BackgroundEnabled 2","BackgroundOpacity -1","BackgroundSpeed 0"}) { std::ofstream(folder/"Bad.theme")<<bad;assert(!LoadTheme("Bad"));assert(CurrentTheme().Width==previous); }
  assert(!SaveTheme("../bad"));assert(!SaveTheme("CON"));
  Bookmarks bookmarks;assert(bookmarks.Load(folder/"bookmarks-test.txt"));assert(bookmarks.Toggle("Self","General"));assert(bookmarks.Contains("Self","General"));
  Bookmarks reopened;assert(reopened.Load(folder/"bookmarks-test.txt"));assert(reopened.Contains("Self","General"));assert(reopened.Toggle("Self","General"));assert(!reopened.Contains("Self","General"));
