@@ -28,7 +28,7 @@ namespace YimMenu::Submenus
 		tools->AddItem(std::make_shared<CommandItem>("callmechanic"_J));
 		tools->AddItem(std::make_shared<CommandItem>("requestpv"_J));
 		tools->AddItem(std::make_shared<CommandItem>("despawnpv"_J));
-		tools->AddItem(std::make_shared<CommandItem>("savepersonalvehicle"_J));
+		tools->AddItem(std::make_shared<CommandItem>("savepersonalvehicle"_J, "Convert Current Vehicle to PV"));
 
 		misc->AddItem(std::make_shared<BoolCommandItem>("savagecameraguard"_J));
 		misc->AddItem(std::make_shared<BoolCommandItem>("speedometer"_J));

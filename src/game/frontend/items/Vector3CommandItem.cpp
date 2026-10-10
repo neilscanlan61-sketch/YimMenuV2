@@ -40,7 +40,8 @@ namespace YimMenu
 
 		if (ImGui::BeginPopup("##saved", ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 		{
-			ImGui::Text("Click on a location to select it. Add more at Teleport > Saved");
+			const auto savedLocations=SavedLocations::Snapshot();
+            ImGui::Text("Click on a location to select it. Add more at Teleport > Saved");
 			InputTextWithHint("##filter", "Search", &m_CurrentFilter).Draw();
 
 			const float max_length = *Pointers.ScreenResY / 3.2;
@@ -51,7 +52,7 @@ namespace YimMenu
 
 			if (ImGui::BeginListBox("##categories", {200, max_length}))
 			{
-				for (auto& l : SavedLocations::GetAllSavedLocations() | std::ranges::views::keys)
+				for (auto& l : savedLocations | std::ranges::views::keys)
 				{
 					if (ImGui::Selectable(l.data(), l == m_CurrentCategory))
 					{
@@ -71,14 +72,14 @@ namespace YimMenu
 			ImGui::Text("Locations");
 			if (ImGui::BeginListBox("##saved_locs", {200, max_length}))
 			{
-				if (SavedLocations::GetAllSavedLocations().find(m_CurrentCategory) != SavedLocations::GetAllSavedLocations().end())
+				if (savedLocations.find(m_CurrentCategory) != savedLocations.end())
 				{
 					std::vector<SavedLocation> current_list{};
 
 					if (!m_CurrentFilter.empty())
 						current_list = SavedLocations::SavedLocationsFilteredList(m_CurrentFilter);
 					else
-						current_list = SavedLocations::GetAllSavedLocations().at(m_CurrentCategory);
+						current_list = savedLocations.at(m_CurrentCategory);
 
 					for (const auto& l : current_list)
 					{

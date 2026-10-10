@@ -1,0 +1,37 @@
+Changes against the supplied previous Rockstar Tool source revision:
+
+README.md
+ROCKSTAR_TOOL_REWORK_README.md
+docs/rockstar-tool/Rockstar Mini.gif
+docs/rockstar-tool/Rockstar Mini.theme
+docs/rockstar-tool/Rojo Mini.gif
+docs/rockstar-tool/Rojo Mini.theme
+docs/rockstar-tool/rework-saved-preview.html
+docs/rockstar-tool/rework-saved-small.png
+docs/rockstar-tool/rework-teleport-desktop.png
+docs/rockstar-tool/rework-teleport-preview.html
+docs/rockstar-tool/rework-themes-desktop.png
+docs/rockstar-tool/rework-themes-preview.html
+docs/rockstar-tool/rework-vehicle-desktop.png
+docs/rockstar-tool/rework-vehicle-preview.html
+src/core/frontend/manager/styles/CheraxClick/CheraxClick.cpp
+src/core/frontend/manager/styles/CheraxClick/ClickTheme.cpp
+src/core/frontend/manager/styles/CheraxClick/ClickTheme.hpp
+src/core/frontend/manager/styles/CheraxClick/ClickThemeEditor.cpp
+src/game/backend/LocationBrowserPolicy.hpp
+src/game/backend/SavedLocations.cpp
+src/game/backend/SavedLocations.hpp
+src/game/frontend/items/Vector3CommandItem.cpp
+src/game/frontend/submenus/Teleport.cpp
+src/game/frontend/submenus/Vehicle.cpp
+tests/click-ui/Mock.hpp
+tests/click-ui/main.cpp
+tests/teleport-rework/Mock.hpp
+tests/teleport-rework/README.md
+tests/teleport-rework/main.cpp
+tests/teleport-rework/mock-include/core/backend/FiberPool.hpp
+tests/teleport-rework/mock-include/core/frontend/Notifications.hpp
+tests/teleport-rework/mock-include/core/frontend/manager/UIManager.hpp
+tests/teleport-rework/mock-include/game/backend/SavedLocations.hpp
+tests/teleport-rework/mock-include/game/backend/Self.hpp
+tests/teleport-rework/mock-include/game/frontend/items/Items.hpp

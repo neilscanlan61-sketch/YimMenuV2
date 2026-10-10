@@ -1,56 +1,42 @@
 #include "ClickTheme.hpp"
 #include "core/renderer/Renderer.hpp"
-#include <cstring>
 
 namespace YimMenu::ClickUI
 {
     void DrawThemeEditor()
     {
-        static char name[49] = "My Theme";
+        static char custom[49] = "Rojo Animated";
         static std::vector<std::string> presets;
         static bool scanned = false;
         if (!scanned) { presets = ThemeNames(); scanned = true; }
-        ImGui::TextWrapped("Click-interface themes. Other layouts keep their own style. Changes preview immediately; save to keep them.");
-        ImGui::TextWrapped("Folder: %s", ThemeFolder().string().c_str());
-        if (ImGui::BeginCombo("Preset", ActiveThemeName().c_str()))
+        ImGui::TextWrapped("Theme and custom theme loading. Put .theme and matching .gif files in the folder below.");
+        ImGui::TextUnformatted("Theme");
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::BeginCombo("##theme-preset", ActiveThemeName().c_str()))
         {
             for (const auto& preset : presets)
-                if (ImGui::Selectable(preset.c_str(), preset == ActiveThemeName())) LoadTheme(preset);
+                if (ImGui::Selectable(preset.c_str(), preset == ActiveThemeName()))
+                    if (LoadTheme(preset)) Renderer::RequestBackgroundReload();
             ImGui::EndCombo();
         }
-        if (ImGui::Button("Refresh theme list")) presets = ThemeNames();
-        ImGui::InputText("Theme name", name, sizeof(name));
-        if (ImGui::Button("Save / overwrite theme"))
+        ImGui::TextUnformatted("Custom theme name");
+        ImGui::SetNextItemWidth(-1);
+        ImGui::InputText("##custom-theme-name", custom, sizeof(custom));
+        if (ImGui::Button("Load custom theme"))
+            if (LoadTheme(custom)) Renderer::RequestBackgroundReload();
+        if (ImGui::Button("Refresh themes / GIF"))
         {
-            SaveTheme(name); presets = ThemeNames();
+            presets = ThemeNames(); Renderer::RequestBackgroundReload();
         }
-        if (ImGui::Button("Reload saved theme")) LoadTheme(ActiveThemeName());
+        bool animated = CurrentTheme().BackgroundEnabled >= 0.5f;
+        if (ImGui::Checkbox("Animated GIF background", &animated))
+        {
+            CurrentTheme().BackgroundEnabled = animated ? 1.0f : 0.0f;
+            SaveTheme(ActiveThemeName()); Renderer::RequestBackgroundReload();
+        }
+        ImGui::TextWrapped("GIF: <theme name>.gif, or background.gif. Turn animation off for reduced motion. Size, colors and light strength can be edited in the .theme file.");
+        ImGui::TextWrapped("Folder: %s", ThemeFolder().string().c_str());
         if (!ThemeStatus().empty()) ImGui::TextWrapped("%s", ThemeStatus().c_str());
-        ImGui::Separator();
-        auto& theme = CurrentTheme();
-        ImGui::ColorEdit4("Background", &theme.Background.x);
-        ImGui::ColorEdit4("Surface", &theme.Surface.x);
-        ImGui::ColorEdit4("Accent", &theme.Accent.x);
-        ImGui::ColorEdit4("Selected row", &theme.Selection.x);
-        ImGui::ColorEdit4("Text", &theme.Text.x);
-        ImGui::ColorEdit4("Secondary text", &theme.Muted.x);
-        ImGui::ColorEdit4("Border", &theme.Border.x);
-        ImGui::ColorEdit4("Header", &theme.Header.x);
-        ImGui::ColorEdit4("Bottom glow", &theme.BackgroundLow.x);
-        ImGui::ColorEdit4("Buttons", &theme.Button.x);
-        ImGui::ColorEdit4("Hovered buttons", &theme.ButtonHover.x);
-        bool animated = theme.BackgroundEnabled >= 0.5f;
-        if (ImGui::Checkbox("Animated GIF background", &animated)) theme.BackgroundEnabled = animated ? 1.0f : 0.0f;
-        ImGui::SliderFloat("Background opacity", &theme.BackgroundOpacity, 0, 1, "%.2f");
-        ImGui::SliderFloat("Animation speed", &theme.BackgroundSpeed, 0.1f, 3, "%.2fx");
-        ImGui::TextWrapped("GIF: <preset name>.gif, or background.gif, in the theme folder. Changes to an existing GIF require Reload GIF. Disable animation for reduced motion.");
-        if (ImGui::Button("Reload GIF")) Renderer::RequestBackgroundReload();
         ImGui::TextWrapped("%s", Renderer::BackgroundStatus().c_str());
-        ImGui::SliderFloat("Panel texture", &theme.Scanlines, 0, 0.25f, "%.2f");
-        ImGui::SliderFloat("Player list width", &theme.PlayerWidth, 160, 280, "%.0f");
-        if (ImGui::Button("Use compact size")) { theme.Width=720; theme.Height=560; theme.PlayerWidth=180; }
-        ImGui::SliderFloat("Panel width", &theme.Width, 560, 1280, "%.0f");
-        ImGui::SliderFloat("Panel height", &theme.Height, 420, 1000, "%.0f");
-        ImGui::SliderFloat("Corner rounding", &theme.Rounding, 0, 16, "%.0f");
     }
 }

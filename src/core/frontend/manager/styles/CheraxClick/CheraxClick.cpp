@@ -103,15 +103,18 @@ namespace YimMenu::ClickUI
         {
             s_Active = true;
             auto& s = ImGui::GetStyle(); const auto& t = CurrentTheme();
-            s.WindowPadding = ImVec2(8,8); s.FramePadding = ImVec2(5,4);
-            s.ItemSpacing = ImVec2(6,5); s.ItemInnerSpacing = ImVec2(5,4);
+            s.WindowPadding = ImVec2(8,8); s.FramePadding = ImVec2(5,3);
+            s.ItemSpacing = ImVec2(5,4); s.ItemInnerSpacing = ImVec2(5,3);
             s.WindowRounding = t.Rounding; s.ChildRounding = t.Rounding;
-            s.FrameRounding = 5; s.GrabRounding = 2; s.TabRounding = 4;
+            const float rounded = std::clamp(t.Rounding, 6.0f, 12.0f);
+            s.FrameRounding = rounded; s.GrabRounding = rounded; s.TabRounding = rounded;
+            s.FrameBorderSize = 1;
             s.ScrollbarSize = 7; s.ScrollbarRounding = 4;
             s.WindowBorderSize = 1; s.ChildBorderSize = 1;
             s.Colors[ImGuiCol_WindowBg] = t.Background;
             s.Colors[ImGuiCol_ChildBg] = ImVec4(0,0,0,0);
             s.Colors[ImGuiCol_PopupBg] = t.Background;
+            s.Colors[ImGuiCol_PopupBg].w = 1.0f;
             s.Colors[ImGuiCol_Text] = t.Text; s.Colors[ImGuiCol_TextDisabled] = t.Muted;
             s.Colors[ImGuiCol_Border] = t.Border;
             s.Colors[ImGuiCol_Button] = t.Button; s.Colors[ImGuiCol_ButtonHovered] = t.ButtonHover;
@@ -138,7 +141,7 @@ namespace YimMenu::ClickUI
         ImGui::PushStyleColor(ImGuiCol_Button, selected ? CurrentTheme().Selection : ImVec4(0,0,0,0));
         auto* font = Menu::Font::g_AwesomeFont;
         if (font && icon && icon[0]) ImGui::PushFont(font);
-        const bool clicked = ImGui::Button(font && icon && icon[0] ? icon : fallback, ImVec2(38,44));
+        const bool clicked = ImGui::Button(font && icon && icon[0] ? icon : fallback, ImVec2(38,36));
         if (font && icon && icon[0]) ImGui::PopFont();
         ImGui::PopStyleColor(); ImGui::PopID();
         return clicked;
@@ -168,11 +171,35 @@ namespace YimMenu
         {
             windowPos = ImGui::GetWindowPos(); windowSize = ImGui::GetWindowSize();
             auto* draw = ImGui::GetWindowDrawList();
-            draw->AddRectFilledMultiColor(windowPos, ImVec2(windowPos.x+windowSize.x,windowPos.y+windowSize.y),
+            draw->AddRectFilled(windowPos, ImVec2(windowPos.x+windowSize.x,windowPos.y+windowSize.y),
+                ImGui::GetColorU32(theme.Background), theme.Rounding);
+            const float inset = std::clamp(theme.Rounding, 0.0f, 16.0f);
+            draw->AddRectFilledMultiColor(ImVec2(windowPos.x+inset,windowPos.y+inset),
+                ImVec2(windowPos.x+windowSize.x-inset,windowPos.y+windowSize.y-inset),
                 ImGui::GetColorU32(theme.Background),ImGui::GetColorU32(theme.Background),
                 ImGui::GetColorU32(theme.BackgroundLow),ImGui::GetColorU32(theme.BackgroundLow));
             if (theme.BackgroundEnabled >= 0.5f)
                 Renderer::DrawAnimatedBackground(draw,windowPos,windowSize,theme.BackgroundOpacity,theme.Rounding);
+            // Static soft light pools: no timers, flicker, shader changes or new assets.
+            // Animated motion, if desired, comes from the existing GIF decoder.
+            if (theme.LightIntensity > 0)
+            {
+                draw->PushClipRect(ImVec2(windowPos.x+inset,windowPos.y+inset),
+                    ImVec2(windowPos.x+windowSize.x-inset,windowPos.y+windowSize.y-inset),true);
+                for (int orb=0; orb<3; ++orb)
+                {
+                    const ImVec2 center(windowPos.x+windowSize.x*(orb==0?0.18f:orb==1?0.82f:0.5f),
+                        windowPos.y+windowSize.y*(orb==0?0.8f:orb==1?0.26f:0.9f));
+                    const float radius=std::min(windowSize.x,windowSize.y)*0.27f;
+                    for (int ring=12; ring>0; --ring)
+                    {
+                        auto color=orb==1?theme.Accent:theme.BackgroundLow;
+                        color.w=std::clamp(theme.LightIntensity,0.0f,0.6f)*(13-ring)/156.0f;
+                        draw->AddCircleFilled(center,radius*ring/12.0f,ImGui::GetColorU32(color),32);
+                    }
+                }
+                draw->PopClipRect();
+            }
             const auto header = ImGui::GetCursorScreenPos(); const float available = ImGui::GetContentRegionAvail().x;
             // User-selected branding; retain YimMenu attribution in the project docs.
             constexpr const char* brand = "ROCKSTAR TOOL";
@@ -249,7 +276,7 @@ namespace YimMenu
                 if (ImGui::BeginChild("##category-body",ImVec2(0,0),false))
                 {
                     // Category selector is a scrollable horizontal strip, not a list.
-                    if (ImGui::BeginChild("##click-tabs",ImVec2(0,46),false,ImGuiWindowFlags_HorizontalScrollbar))
+                    if (ImGui::BeginChild("##click-tabs",ImVec2(0,36),false,ImGuiWindowFlags_HorizontalScrollbar))
                     {
                         bool first=true;
                         for (const auto& entry : active->m_Categories)
@@ -294,7 +321,7 @@ namespace YimMenu
                 ImGui::EndChild();
             }
             ImGui::EndChild();
-            ImGui::SetNextWindowSize(ImVec2(std::min(600.0f,io.DisplaySize.x-32),std::min(650.0f,io.DisplaySize.y-32)),ImGuiCond_Appearing);
+            ImGui::SetNextWindowSize(ImVec2(std::min(440.0f,io.DisplaySize.x-32),std::min(390.0f,io.DisplaySize.y-32)),ImGuiCond_Appearing);
             if (ImGui::BeginPopupModal("Click UI themes",nullptr,ImGuiWindowFlags_NoCollapse))
             {
                 if (ImGui::Button("Close")) ImGui::CloseCurrentPopup();

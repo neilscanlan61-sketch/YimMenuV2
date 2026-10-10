@@ -1,4 +1,5 @@
 #pragma once
+#include <mutex>
 
 namespace YimMenu
 {
@@ -16,6 +17,7 @@ namespace YimMenu
 	private:
 		std::filesystem::path GetSavedLocationsFilePath();
 		std::map<std::string, std::vector<SavedLocation>> m_AllSavedLocations;
+        std::mutex m_Mutex;
 
 	private:
 		bool FetchSavedLocationsImpl();
@@ -31,6 +33,20 @@ namespace YimMenu
 		}
 
 	public:
+        static std::map<std::string, std::vector<SavedLocation>> Snapshot()
+        {
+            std::lock_guard lock(GetInstance().m_Mutex);
+            return GetInstance().m_AllSavedLocations;
+        }
+        static bool TrySaveUnique(const std::string& category, SavedLocation location)
+        {
+            auto& instance=GetInstance();
+            std::lock_guard lock(instance.m_Mutex);
+            if (instance.GetSavedLocationByNameImpl(location.name)) return false;
+            return instance.SaveNewLocationImpl(category,location);
+        }
+        // Legacy mutable-reference API retained for external source compatibility.
+        // Internal renderers use Snapshot() instead.
 		static std::map<std::string, std::vector<SavedLocation>>& GetAllSavedLocations()
 		{
 			return GetInstance().m_AllSavedLocations;
@@ -38,26 +54,31 @@ namespace YimMenu
 
 		static bool FetchSavedLocations()
 		{
+            std::lock_guard lock(GetInstance().m_Mutex);
 			return GetInstance().FetchSavedLocationsImpl();
 		};
 
 		static bool SaveNewLocation(const std::string& category, SavedLocation t)
 		{
+            std::lock_guard lock(GetInstance().m_Mutex);
 			return GetInstance().SaveNewLocationImpl(category, t);
 		};
 
 		static bool DeleteSavedLocation(const std::string& category, const std::string& location_name)
 		{
+            std::lock_guard lock(GetInstance().m_Mutex);
 			return GetInstance().DeleteSavedLocationImpl(category, location_name);
 		};
 
 		static SavedLocation* GetSavedLocationByName(std::string location_name)
 		{
+            std::lock_guard lock(GetInstance().m_Mutex);
 			return GetInstance().GetSavedLocationByNameImpl(location_name);
 		};
 
 		static std::vector<SavedLocation> SavedLocationsFilteredList(std::string filter = "")
 		{
+            std::lock_guard lock(GetInstance().m_Mutex);
 			return GetInstance().SavedLocationsFilteredListImpl(filter);
 		};
 	};

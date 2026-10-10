@@ -1,3 +1,5 @@
+> Latest UI revision: see ROCKSTAR_TOOL_REWORK_README.md for the 640 x 500 preset, Teleport rework and simpler theme/GIF loader.
+
 > **Latest UI revision: Rockstar Tool (Compact Click)** — see [ROCKSTAR_TOOL_README.md](ROCKSTAR_TOOL_README.md) for GIF setup, compact presets and the Savage camera workaround. Source-only; Windows/game integration is unverified. This YimMenuV2 fork is not an official Rockstar Games product.
 
 > **Latest UI revision:** See [CHERAX_CLICK_README.md](CHERAX_CLICK_README.md) for the mouse-clickable screenshot-inspired interface, preset folder, build steps and limitations. Source only; no DLL included.

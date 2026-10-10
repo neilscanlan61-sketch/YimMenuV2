@@ -28,6 +28,7 @@ namespace YimMenu::ClickUI
         {"Width", &Theme::Width, 560, 1280}, {"Height", &Theme::Height, 420, 1000},
         {"RowHeight", &Theme::RowHeight, 36, 64}, {"Rounding", &Theme::Rounding, 0, 16},
         {"PlayerWidth", &Theme::PlayerWidth, 160, 280}, {"Scanlines", &Theme::Scanlines, 0, 0.25f},
+        {"LightIntensity", &Theme::LightIntensity, 0, 0.6f},
         {"BackgroundEnabled", &Theme::BackgroundEnabled, 0, 1},
         {"BackgroundOpacity", &Theme::BackgroundOpacity, 0, 1},
         {"BackgroundSpeed", &Theme::BackgroundSpeed, 0.1f, 3}};
@@ -188,10 +189,14 @@ namespace YimMenu::ClickUI
             compact.Border=ImVec4(.86f,.176f,.196f,.71f); compact.Header=ImVec4(.396f,.02f,.02f,.72f);
             compact.Selection=ImVec4(.86f,.176f,.196f,.39f);
             compact.Text=ImVec4(.941f,.941f,.941f,1); compact.Muted=ImVec4(.65f,.65f,.65f,1);
-            compact.Rounding=5; compact.BackgroundEnabled=1; compact.Scanlines=0;
+            compact.Width=720; compact.Height=560; compact.Rounding=5; compact.BackgroundEnabled=1; compact.Scanlines=0;
             const auto compactFile=folder / "Rockstar Compact.theme";
             if (!std::filesystem::exists(compactFile)) Write(compactFile,compact);
-            std::string selected = "Rockstar Compact";
+            Theme mini=compact; mini.Width=640; mini.Height=500; mini.Rounding=8; mini.PlayerWidth=160;
+            mini.BackgroundOpacity=0.25f; mini.LightIntensity=0.18f;
+            const auto miniFile=folder / "Rockstar Mini.theme";
+            if (!std::filesystem::exists(miniFile)) Write(miniFile,mini);
+            std::string selected = "Rockstar Mini";
             std::ifstream active(folder / "active.txt");
             if (active) std::getline(active, selected);
             s_Initialized = true;

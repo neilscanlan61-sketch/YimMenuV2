@@ -24,10 +24,11 @@ namespace YimMenu::ClickUI
         float BackgroundOpacity = 0.35f;
         float BackgroundSpeed = 1.0f;
         float PlayerWidth = 180.0f;
-        float Width = 720.0f;
-        float Height = 560.0f;
+        float Width = 640.0f;
+        float Height = 500.0f;
         float RowHeight = 44.0f;
-        float Rounding = 7.0f;
+        float Rounding = 8.0f;
+        float LightIntensity = 0.18f;
     };
     Theme& CurrentTheme();
     // Initialize once from the project's configured data directory, not the DLL directory.

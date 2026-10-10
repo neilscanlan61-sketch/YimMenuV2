@@ -104,9 +104,11 @@ namespace YimMenu
 
 	SavedLocation* SavedLocations::GetSavedLocationByNameImpl(std::string name)
 	{
-		for (auto& loc : SavedLocationsFilteredList())
-			if (loc.name == name)
-				return &loc;
+		// Do not return an element of a temporary filtered vector.
+        // Legacy callers must not hold this pointer across map mutations.
+        for (auto& [category, locations] : m_AllSavedLocations)
+            for (auto& location : locations)
+                if (location.name == name) return &location;
 
 		return nullptr;
 	}
