@@ -1,63 +1,62 @@
-# YimMenuV2 — Modern List UI source modification
+# Modern List — Keyboard v2 source update
 
-## Deliverable and status
+## What this is
 
-This is modified **source**, not a rebuilt DLL. It targets the supplied YimMenuV2-enhanced.zip. It does not modify or replace the previously supplied YimMenu.dll and should not be assumed compatible with that older binary.
+Updated YimMenuV2 **Enhanced source**, not a DLL. Apply this to the source used for the working first Modern List build. It is not a Legacy port and does not modify any uploaded binary.
 
-The new layout is inspired by compact vertical list menus; it does not copy Paragon/Rebound branding, artwork, or proprietary code.
+The first Modern List revision was compiled and shown running in-game by the user. **This second revision has not been Windows-built or tested in GTA here.** Compile it and verify the checks below before relying on it.
 
-## UI changes
+## Changes
 
-- New `Modern List` renderer, appended as style value 4 without renumbering existing styles.
-- Default style is Modern List for new configurations. Saved style choices remain respected.
-- Home -> submenu categories -> options navigation with a Back button and breadcrumbs.
-- Dark panel, blue highlights, clipped long row labels, and trailing arrows.
-- Action buttons become full-width RUN rows.
-- Boolean controls become full-width ON/OFF rows.
-- Integer, float and list command controls retain their original command bindings, with labels at left and editable controls at right.
-- Named groups become expanding sections, without the previous multi-column arrangement.
-- TabBarItem/TabItem content becomes expanding vertical sections in this layout.
-- Keyboard navigation uses ImGui's existing arrow/Tab/Enter support; Backspace goes up a level when no popup/text editor is active. Controller navigation is not added or verified.
-- Route-specific scroll identities and checks for removed dynamic submenus/categories.
-- Fixed list palette is restored after each render, leaving other layouts/overlays unaffected by the list renderer.
-- Custom ImGuiItem callbacks and complex editors retain their original controls rather than being rewritten. The panel is resizable and allows horizontal scrolling where those editors need extra space.
-- Existing feature definitions and game/backend logic remain unchanged. GUI input suppression is extended to prevent list keyboard navigation from also controlling the game. A queued Button callback is copied to avoid capturing the UI object's lifetime.
+- Original code-drawn cyan/teal gradient YIMMENU banner, charcoal panel and one filled keyboard-selection bar. The supplied Impulse archive contains texture references but no header image files; no Impulse source, artwork, authentication or other features are included.
+- Requests keyboard focus when opening Modern List and when navigating between Home, Categories and Options.
+- No ImGui cursor in ordinary Modern List mode; no OS cursor repositioning on list open/close. The onboarding dialog and existing mouse layouts retain mouse input.
+- Removes the previous blanket game-control suppression during ordinary list browsing. Only the six frontend navigation controls are suppressed; movement, camera, sprint/jump and driving inputs are not deliberately disabled by this browsing branch.
+- Raw mouse buttons continue to the game while browsing the cursorless list.
+- Space key events continue to the game but bypass ImGui while browsing, preventing jump/handbrake from also activating the focused menu command. Text/active widget editing is excepted.
+- Focused command descriptions in the footer for common command widgets.
+- Existing feature bindings retained. Complex custom editors are not rewritten; keyboard usability varies by editor. Controller navigation has not been added or verified.
+- Fixed compact panel at the top left, with scrolling for longer lists and wide editors. Other themes retain their original layout behavior.
 
-## Selecting it
+## Keys
 
-After building and opening the menu, select **Settings -> GUI -> UI -> UI Style -> Modern List** if an existing settings file restores a different style. The existing menu-opening shortcut is unchanged.
+- **Insert** or the existing **Ctrl + backslash** shortcut: open/close.
+- **Up / Down**: move between navigable rows.
+- **Enter**: open a section, toggle a Boolean, run an action, or activate an editor.
+- **Right**: also opens a focused submenu/category row. Native widgets use their usual editing keys.
+- **Backspace**: up one menu level, unless a text field, active widget or popup is handling input.
+- **Left**: returns from the Categories page to Home. On the Options page, Left remains available for widgets/collapsing groups.
+- **Tab / Shift+Tab**: alternate native ImGui focus navigation; these are not reserved exclusively from the game.
+- **Escape**: use normal widget behavior; close the menu with Insert, not Escape.
 
-## Windows build
+**Text-entry exception:** the original game input block is deliberately retained while actively typing in a text/numeric editor. Ordinary row browsing should no longer freeze movement. Onboarding and other mouse layouts retain their existing input policy.
 
-Use the project's existing build prerequisites: Git, CMake 3.20 or newer, Ninja, Visual Studio C++ build tools/Windows SDK, and Clang for Windows. Internet access is required for the project's FetchContent dependencies.
+## Apply and build through GitHub Desktop / Actions
 
-From an x64 Visual Studio developer terminal in this directory, following the repository's native CI configuration:
+1. Extract the source update ZIP. Open its outer folder.
+2. Copy the **contents** (including `src`, `docs` and `tests`) into your existing cloned YimMenuV2 repository folder. Replace matching files. Do not nest the outer folder inside the repository.
+3. Commit the changes in GitHub Desktop and push to the same `enhanced` branch used for the successful first build. No pull request is needed for your own fork build.
+4. Open your fork's Actions page. Wait for the new workflow to succeed.
+5. Download and extract `RelWithDebInfo-Native-Clang`. Use the newly built DLL from that artifact, not the old first-revision DLL.
 
-```powershell
-cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build --config RelWithDebInfo --target YimMenuV2
-```
+For a saved non-list theme, select Settings -> GUI -> UI -> UI Style -> Modern List. Existing saved style choices remain respected; new configurations default to Modern List.
 
-The expected native build output is `build/YimMenuV2.dll`. These instructions follow the uploaded source's workflow; the build was not run successfully in this environment. Test the resulting build in an appropriate permitted test environment before relying on it.
+The separate full-source ZIP contains the complete modified source tree, license and original build workflows. It is an alternative to applying the update ZIP, not another folder to merge underneath it.
 
-## Verification performed
+## Verification and limitations
 
-- The new renderer was compiled with GCC against a mocked ImGui/frontend harness and its navigation tests passed: Home/category/option transitions, Backspace, popup guard, removed submenu fallback, balanced Begin/End calls, and style restoration.
-- Patch integration and file scope checked against the original uploaded ZIP.
-- The HTML design reference was rendered and inspected at desktop and narrow widths. It is not a production ImGui render or an in-game screenshot.
+- Renderer compiled with GCC against mock ImGui/frontend types; route transitions, focus requests, Right-arrow activation, Backspace guards, removed submenu handling, balanced windows and style restoration tested.
+- All 16 open/list/onboarding/text-edit combinations tested against the pure cursor/movement policy.
+- Source diff checked and applied cleanly to a fresh extraction of the original uploaded Enhanced source, then compared byte-for-byte.
+- Updated illustrative HTML reference rendered and inspected. It is not a screenshot from GTA or the compiled DLL.
+- Full Windows compilation/linking, real ImGui integration, game input behavior, DPI changes, hotkey popups and all custom editors remain unverified for this revision.
 
-## Not verified
+After building, test: opening focuses a row; Up/Down and Enter navigate; Backspace returns; no list cursor is drawn; WASD/camera and Space work during browsing; typing intentionally captures controls; closing/switching themes restores normal behavior. Menu updates do not establish anti-cheat or account safety.
 
-- Complete project compilation/linking against the pinned, real ImGui and Windows dependencies.
-- In-game rendering, all custom editors, command interactions, hotkey popups, DPI scaling, keyboard focus and game input integration.
-- Compatibility with future repository versions or the separately uploaded DLL.
+## Included
 
-No DLL is included. Do not rename this ZIP, a source file, or a patch to `.dll`.
+- `modern-list-ui.patch`: combined source diff against the original uploaded Enhanced ZIP.
+- `docs/modern-list-preview.html` and `.png`: illustrative cyan-banner reference.
+- `tests/modern-list`: optional isolated mock tests, not a Windows or game integration test.
 
-## Included reference and patch
-
-- `modern-list-ui.patch`: source diff against the uploaded ZIP.
-- `docs/modern-list-preview.html`: illustrative layout reference (no live game functions).
-- `docs/modern-list-preview.png`: inspected desktop reference image.
-
-The original project license remains included. Modified source retains that license.
+Original project license retained. No DLL or compiled executable is included.

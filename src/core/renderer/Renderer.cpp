@@ -1,3 +1,6 @@
+#include "core/frontend/manager/UIManager.hpp"
+#include "game/frontend/GUI.hpp"
+#include "game/frontend/GUIInputPolicy.hpp"
 #include "Renderer.hpp"
 #include "D3D12Hook.hpp"
 #include "core/frontend/manager/styles/Themes.hpp"
@@ -331,7 +334,14 @@ namespace YimMenu
             for (const auto& callback : GetInstance().m_WindowProcedureCallbacks)
                 callback(hwnd, msg, wparam, lparam);
 
-            ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+            // Space is GTA's jump/handbrake key. Do not also activate a focused
+            // menu command while browsing; still forward it to the game below.
+            const bool keyMessage = msg == WM_KEYDOWN || msg == WM_KEYUP
+                || msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP;
+            const bool gameplaySpace = keyMessage && wparam == VK_SPACE
+                && GetGUIInputPolicy(GUI::IsOpen(), UIManager::IsListStyle(), GUI::IsOnboarding(), ImGui::GetIO().WantTextInput).PreserveGameplay
+                && !ImGui::IsAnyItemActive();
+            if (!gameplaySpace) ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
         }
 
         if (GetInstance().m_OriginalWndProc)

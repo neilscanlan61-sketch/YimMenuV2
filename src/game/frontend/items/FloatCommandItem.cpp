@@ -35,6 +35,7 @@ namespace YimMenu
             else
                 changed = ImGui::SliderFloat("##value", &value, m_Command->GetMinimum().value(), m_Command->GetMaximum().value());
             if (changed) m_Command->SetState(value);
+            ListUI::Describe(m_Command->GetDescription().c_str());
             if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", m_Command->GetDescription().c_str());
             ImGui::PopID();
             return;

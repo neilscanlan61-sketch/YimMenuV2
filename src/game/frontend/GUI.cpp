@@ -1,3 +1,4 @@
+#include "GUIInputPolicy.hpp"
 #include "core/frontend/manager/UIManager.hpp"
 #include "GUI.hpp"
 #include "Menu.hpp"
@@ -65,10 +66,21 @@ namespace YimMenu
 	void GUI::ToggleMouse()
 	{
 		auto& io = ImGui::GetIO();
-		io.MouseDrawCursor = GUI::IsOpen() || GUI::IsOnboarding();
-		GUI::IsOpen() || GUI::IsOnboarding() 
-			? io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse :
-			  io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+        const auto policy = GetGUIInputPolicy(GUI::IsOpen(), UIManager::IsListStyle(), GUI::IsOnboarding(), GUI::IsUsingKeyboard());
+        const bool keyboardList = policy.KeyboardList;
+        const bool mouseUI = policy.MouseUI;
+        io.MouseDrawCursor = mouseUI;
+        if (mouseUI) io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+        else io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+        if (keyboardList)
+        {
+            // Let the game own its mouse/camera; do not draw or force an OS cursor.
+            io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavNoCaptureKeyboard;
+        }
+        else
+        {
+            io.ConfigFlags &= ~(ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_NavNoCaptureKeyboard);
+        }
 	}
 
 	void GUI::WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
@@ -78,14 +90,11 @@ namespace YimMenu
 		{
 			// Persist and restore the cursor position between menu instances
 			static POINT CursorCoords{};
-			if (m_IsOpen)
-			{
-				GetCursorPos(&CursorCoords);
-			}
-			else if (CursorCoords.x + CursorCoords.y)
-			{
-				SetCursorPos(CursorCoords.x, CursorCoords.y);
-			}
+            if (!UIManager::IsListStyle() || GUI::IsOnboarding())
+            {
+                if (m_IsOpen) GetCursorPos(&CursorCoords);
+                else if (CursorCoords.x + CursorCoords.y) SetCursorPos(CursorCoords.x, CursorCoords.y);
+            }
 			if (!GUI::IsOnboarding())
 				Toggle();
 			ToggleMouse(); 
@@ -106,7 +115,18 @@ namespace YimMenu
 			{
 				if (UIManager::ShowingContentWindow())
 				{
-					if ((GUI::IsUsingKeyboard() || UIManager::IsListStyle()) && PAD::IS_USING_KEYBOARD_AND_MOUSE(0))
+                    if (GetGUIInputPolicy(GUI::IsOpen(), UIManager::IsListStyle(), GUI::IsOnboarding(), GUI::IsUsingKeyboard()).PreserveGameplay)
+                    {
+                        // Keep WASD, sprint/jump, driving and camera input enabled.
+                        // Prevent arrow/Enter menu navigation from also operating frontend UI.
+                        static constexpr ControllerInputs listControls[] = {
+                            ControllerInputs::INPUT_FRONTEND_UP, ControllerInputs::INPUT_FRONTEND_DOWN,
+                            ControllerInputs::INPUT_FRONTEND_LEFT, ControllerInputs::INPUT_FRONTEND_RIGHT,
+                            ControllerInputs::INPUT_FRONTEND_ACCEPT, ControllerInputs::INPUT_FRONTEND_CANCEL};
+                        for (const auto control : listControls)
+                            PAD::DISABLE_CONTROL_ACTION(0, static_cast<int>(control), true);
+                    }
+                    else if (GUI::IsUsingKeyboard() && PAD::IS_USING_KEYBOARD_AND_MOUSE(0))
 					{
 						PAD::DISABLE_ALL_CONTROL_ACTIONS(0);
 					}

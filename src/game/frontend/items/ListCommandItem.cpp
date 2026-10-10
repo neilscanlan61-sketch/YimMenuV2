@@ -42,6 +42,7 @@ namespace YimMenu
                 }
                 ImGui::EndCombo();
             }
+            ListUI::Describe(m_Command->GetDescription().c_str());
             ImGui::PopID();
             return;
         }

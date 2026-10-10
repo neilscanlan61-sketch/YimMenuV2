@@ -1,3 +1,5 @@
+#include "game/frontend/GUI.hpp"
+#include "core/frontend/manager/UIManager.hpp"
 #include "core/hooking/DetourHook.hpp"
 #include "core/renderer/Renderer.hpp"
 #include "game/hooks/Hooks.hpp"
@@ -10,7 +12,8 @@ namespace YimMenu::Hooks
 
 		if (result > 0 && pData && uiCommand == RID_INPUT)
 		{
-			if (Renderer::IsInitialized() && ImGui::GetIO().WantCaptureMouse)
+			if (Renderer::IsInitialized() && ImGui::GetIO().WantCaptureMouse
+                && !(GUI::IsOpen() && UIManager::IsListStyle() && !GUI::IsOnboarding()))
 			{
 				auto& raw = *(RAWINPUT*)pData;
 				if (raw.header.dwType == RIM_TYPEMOUSE && raw.data.mouse.usButtonFlags)

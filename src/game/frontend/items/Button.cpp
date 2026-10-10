@@ -17,6 +17,7 @@ namespace YimMenu
 		const bool pressed = ListUI::Active()
             ? ListUI::Row(this, m_Name.data(), "RUN")
             : ImGui::Button(m_Name.data(), m_Size);
+        if (ListUI::Active()) ListUI::Describe(std::string(m_Information).c_str());
         if (pressed)
 		{
 			if (m_OnClick != nullptr)

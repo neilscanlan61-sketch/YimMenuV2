@@ -31,6 +31,7 @@ namespace YimMenu
         else changed = ImGui::Toggle(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data(), &enabled);
         if (changed)
 			m_Command->SetState(enabled);
+        ListUI::Describe(m_Command->GetDescription().c_str());
 
 		// TODO: refactor this
 

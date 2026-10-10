@@ -1,3 +1,4 @@
+#include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 #include "Menu.hpp"
 #include "core/frontend/manager/UIManager.hpp"
 #include "core/renderer/Renderer.hpp"
@@ -30,7 +31,12 @@ namespace YimMenu
 
 		Renderer::AddRendererCallback(
 		    [&] {
-			    ProcessOnboarding();
+                ProcessOnboarding();
+                static bool listWasOpen = false;
+                const bool listOpen = GUI::IsOpen() && UIManager::IsListStyle() && !GUI::IsOnboarding();
+                if (listOpen && !listWasOpen) ListUI::RequestFocus();
+                listWasOpen = listOpen;
+                GUI::ToggleMouse();
 			    if (!GUI::IsOpen())
 				    return;
 

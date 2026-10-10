@@ -105,8 +105,9 @@
  		{
 --- /dev/null
 +++ b/src/core/frontend/manager/styles/ModernList/ModernList.cpp
-@@ -0,0 +1,193 @@
+@@ -0,0 +1,258 @@
 +#include <algorithm>
++#include <atomic>
 +#include <string>
 +#include "ModernList.hpp"
 +#include "core/frontend/manager/UIManager.hpp"
@@ -114,44 +115,92 @@
 +namespace YimMenu::ListUI
 +{
 +    static bool s_Active = false;
++    static std::atomic<bool> s_FocusRequested{true};
++    static std::string s_FocusedLabel;
++    static std::string s_Description;
++    static std::string s_PendingValueLabel;
 +    bool Active() { return s_Active; }
++    void RequestFocus() { s_FocusRequested.store(true); }
 +
-+    bool Row(const void* id, const char* label, const char* value, bool selected)
++    void Describe(const char* description)
++    {
++        if (!s_Active || !(ImGui::IsItemFocused() || ImGui::IsItemActive())) return;
++        if (!s_PendingValueLabel.empty()) s_FocusedLabel = s_PendingValueLabel;
++        s_Description = description ? description : "";
++    }
++
++    bool Row(const void* id, const char* label, const char* value, bool enabled)
 +    {
 +        ImGui::PushID(id);
 +        const auto start = ImGui::GetCursorScreenPos();
 +        const float width = ImGui::GetContentRegionAvail().x;
-+        const float height = std::max(40.0f, ImGui::GetTextLineHeight() + 16.0f);
-+        const bool pressed = ImGui::Selectable("##list-row", selected, 0, ImVec2(width, height));
++        const float height = std::max(44.0f, ImGui::GetTextLineHeight() + 14.0f);
++        // Draw one filled keyboard-selection bar, not separate focus and mouse bars.
++        ImGui::PushStyleColor(ImGuiCol_NavHighlight, ImVec4(0, 0, 0, 0));
++        const bool activated = ImGui::Selectable("##list-row", false, 0, ImVec2(width, height));
++        ImGui::PopStyleColor();
++        const bool focused = ImGui::IsItemFocused();
++        bool pressed = activated;
++        if (focused && value[0] == '>' && value[1] == '\0'
++            && ImGui::IsKeyPressed(ImGuiKey_RightArrow, false)) pressed = true;
++        s_PendingValueLabel.clear();
 +        auto* draw = ImGui::GetWindowDrawList();
-+        const bool highlight = selected || ImGui::IsItemHovered() || ImGui::IsItemFocused();
-+        if (highlight)
-+            draw->AddRectFilled(start, ImVec2(start.x + 3.0f, start.y + height), IM_COL32(94, 159, 232, 255), 1.0f);
++        if (focused)
++        {
++            draw->AddRectFilled(start, ImVec2(start.x + width, start.y + height), IM_COL32(22, 63, 70, 255), 2.0f);
++            draw->AddRectFilled(start, ImVec2(start.x + 3, start.y + height), IM_COL32(65, 221, 227, 255));
++            s_FocusedLabel = label;
++        }
 +        const auto valueSize = ImGui::CalcTextSize(value);
 +        const float baseline = start.y + (height - ImGui::GetTextLineHeight()) * 0.5f;
-+        draw->PushClipRect(ImVec2(start.x + 12.0f, start.y), ImVec2(start.x + width - valueSize.x - 28.0f, start.y + height), true);
-+        draw->AddText(ImVec2(start.x + 12.0f, baseline), ImGui::GetColorU32(ImGuiCol_Text), label);
++        draw->PushClipRect(ImVec2(start.x + 12, start.y), ImVec2(start.x + width - valueSize.x - 28, start.y + height), true);
++        draw->AddText(ImVec2(start.x + 12, baseline), ImGui::GetColorU32(ImGuiCol_Text), label);
 +        draw->PopClipRect();
-+        draw->AddText(ImVec2(start.x + width - valueSize.x - 12.0f, baseline),
-+            selected ? IM_COL32(144, 193, 255, 255) : IM_COL32(177, 185, 199, 255), value);
++        draw->AddText(ImVec2(start.x + width - valueSize.x - 12, baseline),
++            enabled ? IM_COL32(117, 238, 235, 255) : IM_COL32(175, 190, 197, 255), value);
 +        ImGui::PopID();
 +        return pressed;
 +    }
 +
 +    void BeginValue(const char* label, float width)
 +    {
-+        // Keep the command label at left and the editable value at right.
++        s_PendingValueLabel = label;
 +        const auto start = ImGui::GetCursorScreenPos();
 +        const float available = ImGui::GetContentRegionAvail().x;
 +        width = std::min(width, available * 0.48f);
 +        auto* draw = ImGui::GetWindowDrawList();
-+        draw->PushClipRect(start, ImVec2(start.x + available - width - 16.0f,
++        draw->PushClipRect(start, ImVec2(start.x + available - width - 16,
 +            start.y + ImGui::GetFrameHeight()), true);
-+        draw->AddText(ImVec2(start.x + 12.0f, start.y + ImGui::GetStyle().FramePadding.y),
++        draw->AddText(ImVec2(start.x + 12, start.y + ImGui::GetStyle().FramePadding.y),
 +            ImGui::GetColorU32(ImGuiCol_Text), label);
 +        draw->PopClipRect();
 +        ImGui::SetCursorScreenPos(ImVec2(start.x + available - width, start.y));
 +        ImGui::SetNextItemWidth(width);
++    }
++
++    static void DrawBanner()
++    {
++        const auto p = ImGui::GetCursorScreenPos();
++        const float width = ImGui::GetContentRegionAvail().x;
++        const float height = std::max(94.0f, ImGui::GetTextLineHeight() * 4.0f);
++        auto* draw = ImGui::GetWindowDrawList();
++        // Original vector header: no Impulse texture/assets or game/authentication code.
++        draw->AddRectFilledMultiColor(p, ImVec2(p.x + width, p.y + height),
++            IM_COL32(14, 41, 49, 255), IM_COL32(6, 15, 21, 255),
++            IM_COL32(6, 15, 21, 255), IM_COL32(9, 28, 35, 255));
++        draw->AddRectFilled(p, ImVec2(p.x + width, p.y + 3), IM_COL32(65, 221, 227, 255));
++        const float fontSize = ImGui::GetFontSize();
++        const float titleSize = fontSize * 1.65f;
++        const char* title = "YIMMENU";
++        const float titleWidth = ImGui::CalcTextSize(title).x * titleSize / fontSize;
++        draw->AddText(ImGui::GetFont(), titleSize,
++            ImVec2(p.x + (width - titleWidth) * 0.5f, p.y + 20), IM_COL32(239, 249, 249, 255), title);
++        const char* subtitle = "V2  /  ENHANCED  /  KEYBOARD";
++        const float subtitleSize = fontSize * 0.70f;
++        const float subtitleWidth = ImGui::CalcTextSize(subtitle).x * subtitleSize / fontSize;
++        draw->AddText(ImGui::GetFont(), subtitleSize,
++            ImVec2(p.x + (width - subtitleWidth) * 0.5f, p.y + height - 27), IM_COL32(135, 207, 211, 255), subtitle);
++        ImGui::Dummy(ImVec2(width, height));
 +    }
 +}
 +
@@ -159,40 +208,42 @@
 +{
 +    void RenderModernListTheme()
 +    {
-+        // Changes are scoped: do not overwrite saved styles, other layouts, or overlays.
 +        struct StyleScope
 +        {
 +            ImGuiStyle original;
 +            StyleScope() : original(ImGui::GetStyle())
 +            {
 +                ListUI::s_Active = true;
++                ListUI::s_FocusedLabel.clear();
++                ListUI::s_Description.clear();
++                ListUI::s_PendingValueLabel.clear();
 +                auto& s = ImGui::GetStyle();
-+                s.WindowPadding = ImVec2(16, 16);
-+                s.ItemSpacing = ImVec2(8, 6);
++                s.WindowPadding = ImVec2(12, 12);
++                s.ItemSpacing = ImVec2(6, 2);
 +                s.FramePadding = ImVec2(10, 10);
-+                s.WindowRounding = 10;
-+                s.ChildRounding = 6;
-+                s.FrameRounding = 5;
++                s.WindowRounding = 6;
++                s.ChildRounding = 2;
++                s.FrameRounding = 3;
 +                s.WindowBorderSize = 1;
-+                s.ScrollbarSize = 6;
-+                s.Colors[ImGuiCol_WindowBg] = ImVec4(0.065f, 0.075f, 0.095f, 0.98f);
-+                s.Colors[ImGuiCol_ChildBg] = ImVec4(0.085f, 0.095f, 0.12f, 1);
-+                s.Colors[ImGuiCol_PopupBg] = ImVec4(0.085f, 0.095f, 0.12f, 1);
-+                s.Colors[ImGuiCol_Text] = ImVec4(0.94f, 0.95f, 0.97f, 1);
-+                s.Colors[ImGuiCol_TextDisabled] = ImVec4(0.69f, 0.73f, 0.79f, 1);
-+                s.Colors[ImGuiCol_Border] = ImVec4(0.23f, 0.27f, 0.34f, 1);
-+                s.Colors[ImGuiCol_Header] = ImVec4(0.16f, 0.24f, 0.35f, 1);
-+                s.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.18f, 0.27f, 0.40f, 1);
-+                s.Colors[ImGuiCol_HeaderActive] = ImVec4(0.22f, 0.34f, 0.50f, 1);
-+                s.Colors[ImGuiCol_Button] = ImVec4(0.13f, 0.16f, 0.21f, 1);
++                s.ScrollbarSize = 5;
++                s.Colors[ImGuiCol_WindowBg] = ImVec4(0.035f, 0.047f, 0.06f, 0.98f);
++                s.Colors[ImGuiCol_ChildBg] = ImVec4(0.045f, 0.06f, 0.075f, 1);
++                s.Colors[ImGuiCol_PopupBg] = ImVec4(0.045f, 0.06f, 0.075f, 1);
++                s.Colors[ImGuiCol_Text] = ImVec4(0.94f, 0.97f, 0.98f, 1);
++                s.Colors[ImGuiCol_TextDisabled] = ImVec4(0.64f, 0.73f, 0.77f, 1);
++                s.Colors[ImGuiCol_Border] = ImVec4(0.15f, 0.23f, 0.26f, 1);
++                s.Colors[ImGuiCol_Header] = ImVec4(0.06f, 0.12f, 0.14f, 1);
++                s.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.085f, 0.24f, 0.27f, 1);
++                s.Colors[ImGuiCol_HeaderActive] = s.Colors[ImGuiCol_HeaderHovered];
++                s.Colors[ImGuiCol_Button] = ImVec4(0.09f, 0.15f, 0.18f, 1);
 +                s.Colors[ImGuiCol_ButtonHovered] = s.Colors[ImGuiCol_HeaderHovered];
 +                s.Colors[ImGuiCol_ButtonActive] = s.Colors[ImGuiCol_HeaderActive];
-+                s.Colors[ImGuiCol_FrameBg] = ImVec4(0.14f, 0.17f, 0.22f, 1);
++                s.Colors[ImGuiCol_FrameBg] = ImVec4(0.07f, 0.11f, 0.14f, 1);
 +                s.Colors[ImGuiCol_FrameBgHovered] = s.Colors[ImGuiCol_HeaderHovered];
 +                s.Colors[ImGuiCol_FrameBgActive] = s.Colors[ImGuiCol_HeaderActive];
-+                s.Colors[ImGuiCol_CheckMark] = ImVec4(0.37f, 0.62f, 0.91f, 1);
++                s.Colors[ImGuiCol_CheckMark] = ImVec4(0.25f, 0.87f, 0.89f, 1);
 +                s.Colors[ImGuiCol_SliderGrab] = s.Colors[ImGuiCol_CheckMark];
-+                s.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.56f, 0.76f, 1, 1);
++                s.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.46f, 0.93f, 0.92f, 1);
 +                s.Colors[ImGuiCol_NavHighlight] = s.Colors[ImGuiCol_CheckMark];
 +            }
 +            ~StyleScope() { ImGui::GetStyle() = original; ListUI::s_Active = false; }
@@ -206,53 +257,56 @@
 +        auto category = routeCategory.lock();
 +        const auto& submenus = UIManager::GetSubmenus();
 +        if (page != Page::Home && (!submenu || std::find(submenus.begin(), submenus.end(), submenu) == submenus.end()))
++        {
 +            page = Page::Home;
++            ListUI::RequestFocus();
++        }
 +        if (page == Page::Options && (!category || std::find(submenu->m_Categories.begin(), submenu->m_Categories.end(), category) == submenu->m_Categories.end()))
++        {
 +            page = Page::Categories;
++            ListUI::RequestFocus();
++        }
 +
 +        auto& io = ImGui::GetIO();
-+        // Native ImGui keyboard navigation; controller input needs a backend mapping.
-+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-+        const ImVec2 size(std::min(460.0f, io.DisplaySize.x - 32.0f), std::min(680.0f, io.DisplaySize.y - 32.0f));
-+        ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
-+        ImGui::SetNextWindowPos(ImVec2(32, 32), ImGuiCond_FirstUseEver);
-+        ImGui::SetNextWindowSizeConstraints(ImVec2(std::min(420.0f, size.x), std::min(400.0f, size.y)),
-+            ImVec2(io.DisplaySize.x - 16.0f, io.DisplaySize.y - 16.0f));
++        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavNoCaptureKeyboard;
++        // GUI::ToggleMouse owns NoMouse/NoMouseCursorChange, including theme transitions.
++        const ImVec2 size(std::max(280.0f, std::min(440.0f, io.DisplaySize.x - 32)),
++            std::max(360.0f, std::min(700.0f, io.DisplaySize.y - 32)));
++        ImGui::SetNextWindowSize(size, ImGuiCond_Always);
++        ImGui::SetNextWindowPos(ImVec2(32, 32), ImGuiCond_Always);
++        if (ListUI::s_FocusRequested.load()) ImGui::SetNextWindowFocus();
 +        UIManager::SetShowContentWindow(true);
-+        const auto flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar;
-+        if (ImGui::Begin("##YimModernList", nullptr, flags))
++        const auto flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse
++            | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
++        if (ImGui::Begin("##YimModernListKeyboardV2", nullptr, flags))
 +        {
-+            ImGui::TextUnformatted("YIMMENU V2");
-+            ImGui::SameLine();
-+            const char* tag = "MODERN LIST";
-+            ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::CalcTextSize(tag).x - 16.0f);
-+            ImGui::TextDisabled("%s", tag);
-+            ImGui::Separator();
++            ListUI::DrawBanner();
 +            ImGui::Spacing();
 +            const auto goBack = [&] {
-+                if (page == Page::Options) page = Page::Categories;
-+                else page = Page::Home;
++                page = page == Page::Options ? Page::Categories : Page::Home;
++                ListUI::RequestFocus();
 +            };
-+            if (page != Page::Home)
++            if (!io.WantTextInput && !ImGui::IsAnyItemActive()
++                && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel)
++                && ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
 +            {
-+                if (ImGui::Button("< Back", ImVec2(80, 36))) goBack();
-+                ImGui::SameLine();
++                if (ImGui::IsKeyPressed(ImGuiKey_Backspace, false)
++                    || (page == Page::Categories && ImGui::IsKeyPressed(ImGuiKey_LeftArrow, false))) goBack();
 +            }
 +            std::string breadcrumb = "Home";
-+            if (page != Page::Home && submenu) breadcrumb = submenu->m_Name;
++            if (page != Page::Home && submenu) breadcrumb = "Home / " + submenu->m_Name;
 +            if (page == Page::Options && category) breadcrumb += " / " + category->m_Name;
 +            ImGui::TextUnformatted(breadcrumb.c_str());
-+            if (!io.WantTextInput && !ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel)
-+                && ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)
-+                && ImGui::IsKeyPressed(ImGuiKey_Backspace, false)) goBack();
-+
++            ImGui::Separator();
 +            ImGui::Spacing();
-+            // Distinct child identities keep scroll positions separate between routes.
++
 +            ImGui::PushID(page == Page::Home ? nullptr : submenu.get());
 +            ImGui::PushID(page == Page::Options ? category.get() : nullptr);
 +            const char* childId = page == Page::Home ? "##home-list" : page == Page::Categories ? "##category-list" : "##option-list";
-+            if (ImGui::BeginChild(childId, ImVec2(0, -40.0f), false, ImGuiWindowFlags_HorizontalScrollbar))
++            if (ImGui::BeginChild(childId, ImVec2(0, -92), false, ImGuiWindowFlags_HorizontalScrollbar))
 +            {
++                // Focus the first real content item, not a mouse-only Back button.
++                if (ListUI::s_FocusRequested.exchange(false)) ImGui::SetKeyboardFocusHere(0);
 +                if (page == Page::Home)
 +                {
 +                    for (const auto& entry : submenus)
@@ -263,6 +317,7 @@
 +                            UIManager::SetActiveSubmenu(entry);
 +                            routeSubmenu = entry;
 +                            page = Page::Categories;
++                            ListUI::RequestFocus();
 +                            break;
 +                        }
 +                    }
@@ -277,6 +332,7 @@
 +                            submenu->SetActiveCategory(entry);
 +                            routeCategory = entry;
 +                            page = Page::Options;
++                            ListUI::RequestFocus();
 +                            break;
 +                        }
 +                    }
@@ -294,21 +350,32 @@
 +            ImGui::PopID();
 +            ImGui::PopID();
 +            ImGui::Separator();
-+            ImGui::TextDisabled("Arrows / Enter: navigate   Backspace: back");
++            // Bound the description region so long text cannot overlap the controls.
++            if (ImGui::BeginChild("##description", ImVec2(0, 48), false))
++            {
++                const auto text = !ListUI::s_Description.empty() ? ListUI::s_Description
++                    : !ListUI::s_FocusedLabel.empty() ? ListUI::s_FocusedLabel
++                    : "Up/Down: select a row. Enter: activate.";
++                ImGui::TextWrapped("%s", text.c_str());
++            }
++            ImGui::EndChild();
++            ImGui::TextDisabled("Up/Down: select  Enter: open  Backspace: back");
 +        }
 +        ImGui::End();
 +    }
 +}
 --- /dev/null
 +++ b/src/core/frontend/manager/styles/ModernList/ModernList.hpp
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,11 @@
 +#pragma once
 +
 +namespace YimMenu::ListUI
 +{
-+    // Scoped to the Modern List renderer, so changing styles mid-frame is safe.
 +    bool Active();
-+    bool Row(const void* id, const char* label, const char* value = ">", bool selected = false);
++    void RequestFocus();
++    // Publishes a description for the keyboard-focused command in the footer.
++    void Describe(const char* description);
++    bool Row(const void* id, const char* label, const char* value = ">", bool enabled = false);
 +    void BeginValue(const char* label, float width = 168.0f);
 +}
 --- a/src/core/frontend/manager/styles/Themes.hpp
@@ -321,17 +388,146 @@
  	extern void SetupStyle();
  	extern void DefaultStyle();
  }
+--- a/src/core/renderer/Renderer.cpp
++++ b/src/core/renderer/Renderer.cpp
+@@ -1,3 +1,6 @@
++#include "core/frontend/manager/UIManager.hpp"
++#include "game/frontend/GUI.hpp"
++#include "game/frontend/GUIInputPolicy.hpp"
+ #include "Renderer.hpp"
+ #include "D3D12Hook.hpp"
+ #include "core/frontend/manager/styles/Themes.hpp"
+@@ -331,7 +334,14 @@
+             for (const auto& callback : GetInstance().m_WindowProcedureCallbacks)
+                 callback(hwnd, msg, wparam, lparam);
+ 
+-            ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
++            // Space is GTA's jump/handbrake key. Do not also activate a focused
++            // menu command while browsing; still forward it to the game below.
++            const bool keyMessage = msg == WM_KEYDOWN || msg == WM_KEYUP
++                || msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP;
++            const bool gameplaySpace = keyMessage && wparam == VK_SPACE
++                && GetGUIInputPolicy(GUI::IsOpen(), UIManager::IsListStyle(), GUI::IsOnboarding(), ImGui::GetIO().WantTextInput).PreserveGameplay
++                && !ImGui::IsAnyItemActive();
++            if (!gameplaySpace) ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+         }
+ 
+         if (GetInstance().m_OriginalWndProc)
 --- a/src/game/frontend/GUI.cpp
 +++ b/src/game/frontend/GUI.cpp
-@@ -106,7 +106,7 @@
+@@ -1,3 +1,4 @@
++#include "GUIInputPolicy.hpp"
+ #include "core/frontend/manager/UIManager.hpp"
+ #include "GUI.hpp"
+ #include "Menu.hpp"
+@@ -65,10 +66,21 @@
+ 	void GUI::ToggleMouse()
+ 	{
+ 		auto& io = ImGui::GetIO();
+-		io.MouseDrawCursor = GUI::IsOpen() || GUI::IsOnboarding();
+-		GUI::IsOpen() || GUI::IsOnboarding() 
+-			? io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse :
+-			  io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
++        const auto policy = GetGUIInputPolicy(GUI::IsOpen(), UIManager::IsListStyle(), GUI::IsOnboarding(), GUI::IsUsingKeyboard());
++        const bool keyboardList = policy.KeyboardList;
++        const bool mouseUI = policy.MouseUI;
++        io.MouseDrawCursor = mouseUI;
++        if (mouseUI) io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
++        else io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
++        if (keyboardList)
++        {
++            // Let the game own its mouse/camera; do not draw or force an OS cursor.
++            io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavNoCaptureKeyboard;
++        }
++        else
++        {
++            io.ConfigFlags &= ~(ImGuiConfigFlags_NoMouseCursorChange | ImGuiConfigFlags_NavNoCaptureKeyboard);
++        }
+ 	}
+ 
+ 	void GUI::WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+@@ -78,14 +90,11 @@
+ 		{
+ 			// Persist and restore the cursor position between menu instances
+ 			static POINT CursorCoords{};
+-			if (m_IsOpen)
+-			{
+-				GetCursorPos(&CursorCoords);
+-			}
+-			else if (CursorCoords.x + CursorCoords.y)
+-			{
+-				SetCursorPos(CursorCoords.x, CursorCoords.y);
+-			}
++            if (!UIManager::IsListStyle() || GUI::IsOnboarding())
++            {
++                if (m_IsOpen) GetCursorPos(&CursorCoords);
++                else if (CursorCoords.x + CursorCoords.y) SetCursorPos(CursorCoords.x, CursorCoords.y);
++            }
+ 			if (!GUI::IsOnboarding())
+ 				Toggle();
+ 			ToggleMouse(); 
+@@ -106,7 +115,18 @@
  			{
  				if (UIManager::ShowingContentWindow())
  				{
 -					if (GUI::IsUsingKeyboard() && PAD::IS_USING_KEYBOARD_AND_MOUSE(0))
-+					if ((GUI::IsUsingKeyboard() || UIManager::IsListStyle()) && PAD::IS_USING_KEYBOARD_AND_MOUSE(0))
++                    if (GetGUIInputPolicy(GUI::IsOpen(), UIManager::IsListStyle(), GUI::IsOnboarding(), GUI::IsUsingKeyboard()).PreserveGameplay)
++                    {
++                        // Keep WASD, sprint/jump, driving and camera input enabled.
++                        // Prevent arrow/Enter menu navigation from also operating frontend UI.
++                        static constexpr ControllerInputs listControls[] = {
++                            ControllerInputs::INPUT_FRONTEND_UP, ControllerInputs::INPUT_FRONTEND_DOWN,
++                            ControllerInputs::INPUT_FRONTEND_LEFT, ControllerInputs::INPUT_FRONTEND_RIGHT,
++                            ControllerInputs::INPUT_FRONTEND_ACCEPT, ControllerInputs::INPUT_FRONTEND_CANCEL};
++                        for (const auto control : listControls)
++                            PAD::DISABLE_CONTROL_ACTION(0, static_cast<int>(control), true);
++                    }
++                    else if (GUI::IsUsingKeyboard() && PAD::IS_USING_KEYBOARD_AND_MOUSE(0))
  					{
  						PAD::DISABLE_ALL_CONTROL_ACTIONS(0);
  					}
+--- /dev/null
++++ b/src/game/frontend/GUIInputPolicy.hpp
+@@ -0,0 +1,18 @@
++#pragma once
++
++namespace YimMenu
++{
++    struct GUIInputPolicy
++    {
++        bool KeyboardList;
++        bool MouseUI;
++        bool PreserveGameplay;
++    };
++
++    // No platform/API dependencies: keeps the movement/cursor decision testable.
++    constexpr GUIInputPolicy GetGUIInputPolicy(bool open, bool listStyle, bool onboarding, bool textEditing)
++    {
++        const bool keyboardList = open && listStyle && !onboarding;
++        return {keyboardList, onboarding || (open && !keyboardList), keyboardList && !textEditing};
++    }
++}
+--- a/src/game/frontend/Menu.cpp
++++ b/src/game/frontend/Menu.cpp
+@@ -1,3 +1,4 @@
++#include "core/frontend/manager/styles/ModernList/ModernList.hpp"
+ #include "Menu.hpp"
+ #include "core/frontend/manager/UIManager.hpp"
+ #include "core/renderer/Renderer.hpp"
+@@ -30,7 +31,12 @@
+ 
+ 		Renderer::AddRendererCallback(
+ 		    [&] {
+-			    ProcessOnboarding();
++                ProcessOnboarding();
++                static bool listWasOpen = false;
++                const bool listOpen = GUI::IsOpen() && UIManager::IsListStyle() && !GUI::IsOnboarding();
++                if (listOpen && !listWasOpen) ListUI::RequestFocus();
++                listWasOpen = listOpen;
++                GUI::ToggleMouse();
+ 			    if (!GUI::IsOpen())
+ 				    return;
+ 
 --- a/src/game/frontend/items/BoolCommandItem.cpp
 +++ b/src/game/frontend/items/BoolCommandItem.cpp
 @@ -1,3 +1,4 @@
@@ -339,7 +535,7 @@
  #include "Items.hpp"
  #include "core/commands/Commands.hpp"
  #include "core/commands/Command.hpp"
-@@ -21,7 +22,14 @@
+@@ -21,8 +22,16 @@
  		}
  
  		bool enabled = m_Command->GetState();
@@ -353,8 +549,10 @@
 +        else changed = ImGui::Toggle(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data(), &enabled);
 +        if (changed)
  			m_Command->SetState(enabled);
++        ListUI::Describe(m_Command->GetDescription().c_str());
  
  		// TODO: refactor this
+ 
 --- a/src/game/frontend/items/Button.cpp
 +++ b/src/game/frontend/items/Button.cpp
 @@ -1,3 +1,4 @@
@@ -362,7 +560,7 @@
  #include "Items.hpp"
  #include "core/backend/FiberPool.hpp"
  
-@@ -13,13 +14,15 @@
+@@ -13,13 +14,16 @@
  
  	void Button::Draw()
  	{
@@ -370,6 +568,7 @@
 +		const bool pressed = ListUI::Active()
 +            ? ListUI::Row(this, m_Name.data(), "RUN")
 +            : ImGui::Button(m_Name.data(), m_Size);
++        if (ListUI::Active()) ListUI::Describe(std::string(m_Information).c_str());
 +        if (pressed)
  		{
  			if (m_OnClick != nullptr)
@@ -389,7 +588,7 @@
  #include "Items.hpp"
  #include "core/commands/Commands.hpp"
  #include "core/commands/Command.hpp"
-@@ -21,7 +22,10 @@
+@@ -21,7 +22,11 @@
  			return;
  		}
  
@@ -397,6 +596,7 @@
 +		const bool pressed = ListUI::Active()
 +            ? ListUI::Row(m_Command, m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data(), "RUN")
 +            : ImGui::Button(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data());
++        ListUI::Describe(m_Command->GetDescription().c_str());
 +        if (pressed)
  		{
  			// Capture the command by value, not 'this'. This item may be drawn from a 
@@ -408,7 +608,7 @@
  #include "Items.hpp"
  #include "core/commands/Command.hpp"
  #include "core/commands/Commands.hpp"
-@@ -23,6 +24,21 @@
+@@ -23,6 +24,22 @@
  
  		auto value = m_Command->GetState();
  		auto label = m_LabelOverride.has_value() ? m_LabelOverride.value().c_str() : m_Command->GetLabel().c_str();
@@ -423,6 +623,7 @@
 +            else
 +                changed = ImGui::SliderFloat("##value", &value, m_Command->GetMinimum().value(), m_Command->GetMaximum().value());
 +            if (changed) m_Command->SetState(value);
++            ListUI::Describe(m_Command->GetDescription().c_str());
 +            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", m_Command->GetDescription().c_str());
 +            ImGui::PopID();
 +            return;
@@ -468,7 +669,7 @@
  #include "Items.hpp"
  #include "core/commands/Command.hpp"
  #include "core/commands/Commands.hpp"
-@@ -23,6 +24,21 @@
+@@ -23,6 +24,22 @@
  
  		int value = m_Command->GetState();
  		auto label = m_LabelOverride.has_value() ? m_LabelOverride.value().c_str() : m_Command->GetLabel().c_str();
@@ -483,6 +684,7 @@
 +            else
 +                changed = ImGui::SliderInt("##value", &value, m_Command->GetMinimum().value(), m_Command->GetMaximum().value());
 +            if (changed) m_Command->SetState(value);
++            ListUI::Describe(m_Command->GetDescription().c_str());
 +            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", m_Command->GetDescription().c_str());
 +            ImGui::PopID();
 +            return;
@@ -497,7 +699,7 @@
  #include "Items.hpp"
  #include "core/commands/Command.hpp"
  #include "core/commands/Commands.hpp"
-@@ -22,6 +23,28 @@
+@@ -22,6 +23,29 @@
  
  		int current_val = m_Command->GetState();
  		auto& list = m_Command->GetList();
@@ -520,6 +722,7 @@
 +                }
 +                ImGui::EndCombo();
 +            }
++            ListUI::Describe(m_Command->GetDescription().c_str());
 +            ImGui::PopID();
 +            return;
 +        }
@@ -533,7 +736,7 @@
  #include "Items.hpp"
  #include "game/commands/PlayerCommand.hpp"
  #include "core/commands/Commands.hpp"
-@@ -20,7 +21,10 @@
+@@ -20,7 +21,11 @@
  			return;
  		}
  
@@ -541,6 +744,7 @@
 +		const bool pressed = ListUI::Active()
 +            ? ListUI::Row(m_Command, m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data(), "RUN")
 +            : ImGui::Button(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data());
++        ListUI::Describe(m_Command->GetDescription().c_str());
 +        if (pressed)
  		{
  			FiberPool::Push([this] {
@@ -597,3 +801,21 @@
  		if (ImGui::BeginTabItem(m_Name.c_str()))
  		{
  			for (auto& item : m_Items)
+--- a/src/game/hooks/GUI/RawInput.cpp
++++ b/src/game/hooks/GUI/RawInput.cpp
+@@ -1,3 +1,5 @@
++#include "game/frontend/GUI.hpp"
++#include "core/frontend/manager/UIManager.hpp"
+ #include "core/hooking/DetourHook.hpp"
+ #include "core/renderer/Renderer.hpp"
+ #include "game/hooks/Hooks.hpp"
+@@ -10,7 +12,8 @@
+ 
+ 		if (result > 0 && pData && uiCommand == RID_INPUT)
+ 		{
+-			if (Renderer::IsInitialized() && ImGui::GetIO().WantCaptureMouse)
++			if (Renderer::IsInitialized() && ImGui::GetIO().WantCaptureMouse
++                && !(GUI::IsOpen() && UIManager::IsListStyle() && !GUI::IsOnboarding()))
+ 			{
+ 				auto& raw = *(RAWINPUT*)pData;
+ 				if (raw.header.dwType == RIM_TYPEMOUSE && raw.data.mouse.usButtonFlags)

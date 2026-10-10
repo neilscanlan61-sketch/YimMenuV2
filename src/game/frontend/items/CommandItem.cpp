@@ -25,6 +25,7 @@ namespace YimMenu
 		const bool pressed = ListUI::Active()
             ? ListUI::Row(m_Command, m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data(), "RUN")
             : ImGui::Button(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data());
+        ListUI::Describe(m_Command->GetDescription().c_str());
         if (pressed)
 		{
 			// Capture the command by value, not 'this'. This item may be drawn from a 
