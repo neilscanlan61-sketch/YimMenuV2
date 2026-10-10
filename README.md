@@ -27,3 +27,4 @@ FSL reroutes account save data to disk, so any progress made with FSL will only 
 ### I removed FSL and the game doesn't start up anymore
 
 This is a known issue; delete "Documents/GTAV Enhanced/Profiles" to fix
+Trigger Modern List build.
