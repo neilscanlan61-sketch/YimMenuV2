@@ -1,5 +1,6 @@
 #include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 #include "Items.hpp"
+#include "core/frontend/manager/styles/CheraxClick/CheraxClick.hpp"
 #include "core/commands/Command.hpp"
 #include "core/commands/Commands.hpp"
 #include "core/commands/ListCommand.hpp"
@@ -23,6 +24,26 @@ namespace YimMenu
 
 		int current_val = m_Command->GetState();
 		auto& list = m_Command->GetList();
+        if (ClickUI::Active())
+        {
+            const char* preview = "Select...";
+            for (const auto& entry : list) if (entry.first == current_val) preview = entry.second;
+            const auto label = m_LabelOverride.value_or(m_Command->GetLabel());
+            ImGui::PushID(m_Command);
+            if (!label.starts_with("##")) ImGui::TextWrapped("%s", label.c_str());
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::BeginCombo("##value", preview))
+            {
+                for (const auto& entry : list)
+                {
+                    if (ImGui::Selectable(entry.second, entry.first == current_val)) m_Command->SetState(entry.first);
+                    if (entry.first == current_val) ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::PopID();
+            return;
+        }
         if (ListUI::Active())
         {
             const char* preview = "Select...";

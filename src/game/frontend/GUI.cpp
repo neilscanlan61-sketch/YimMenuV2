@@ -1,5 +1,6 @@
 #include "GUIInputPolicy.hpp"
 #include "ListInputControls.hpp"
+#include "core/frontend/manager/styles/CheraxClick/ClickLayout.hpp"
 #include "core/frontend/manager/UIManager.hpp"
 #include "GUI.hpp"
 #include "Menu.hpp"
@@ -114,7 +115,7 @@ namespace YimMenu
 		{
 			if (Renderer::IsInitialized() && GUI::IsOpen())
 			{
-				if (UIManager::IsListStyle() && !GUI::IsOnboarding())
+				if (ClickUI::ReservePhone(GUI::IsOpen(), UIManager::IsListStyle(), UIManager::IsClickStyle(), GUI::IsOnboarding()))
                 {
                     for (int group = 0; group < 3; ++group)
                         for (const auto control : ListInputControls)

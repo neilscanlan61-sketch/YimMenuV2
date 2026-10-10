@@ -1,5 +1,6 @@
 #include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 #include "Items.hpp"
+#include "core/frontend/manager/styles/CheraxClick/CheraxClick.hpp"
 #include "core/backend/FiberPool.hpp"
 
 namespace YimMenu
@@ -16,7 +17,7 @@ namespace YimMenu
 	{
 		const bool pressed = ListUI::Active()
             ? ListUI::Row(this, m_Name.data(), "RUN")
-            : ImGui::Button(m_Name.data(), m_Size);
+            : ImGui::Button(m_Name.data(), ClickUI::Active() ? ImVec2(std::min(m_Size.x > 0 ? m_Size.x : ImGui::CalcTextSize(m_Name.data()).x+10,ImGui::GetContentRegionAvail().x),m_Size.y) : m_Size);
         if (ListUI::Active()) ListUI::Describe(std::string(m_Information).c_str());
         if (pressed)
 		{

@@ -1,4 +1,6 @@
 #include "Players.hpp"
+#include "core/frontend/manager/styles/CheraxClick/CheraxClick.hpp"
+#include "core/frontend/manager/styles/CheraxClick/ClickLayout.hpp"
 
 #include "Player/Info.hpp"
 #include "Player/Toxic.hpp"
@@ -113,6 +115,54 @@ namespace YimMenu::Submenus
 		}
 	}
 
+    void DrawClickPlayerDock()
+    {
+        static char filter[96]{};
+        static bool sortById=false;
+        std::vector<std::pair<uint8_t, Player>> players(YimMenu::Players::GetPlayers().begin(),YimMenu::Players::GetPlayers().end());
+        ImGui::Text("Players (%d)",static_cast<int>(players.size()));
+        ImGui::SetNextItemWidth(-1);
+        if (ImGui::BeginCombo("##sort-players",sortById?"Sort by player ID":"Sort by name"))
+        {
+            if (ImGui::Selectable("Name",!sortById)) sortById=false;
+            if (ImGui::Selectable("Player ID",sortById)) sortById=true;
+            ImGui::EndCombo();
+        }
+        ImGui::SetNextItemWidth(-1);
+        ImGui::InputTextWithHint("##player-filter","Search players",filter,sizeof(filter));
+        ImGui::Separator();
+        std::sort(players.begin(),players.end(),[&](auto a,auto b) { return sortById ? a.first<b.first : std::string(a.second.GetName())<std::string(b.second.GetName()); });
+        for (auto& [id,player] : players)
+        {
+            if (!ClickUI::Matches(player.GetName(),filter)) continue;
+            ImGui::PushID(static_cast<int>(id));
+            if (ImGui::Selectable(player.GetName(),YimMenu::Players::GetSelected()==player)) YimMenu::Players::SetSelected(id);
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                for (const auto& tag : GetPlayerTags(player)) ImGui::TextColored(tag.Color,"[%s]",tag.Name.c_str());
+                ImGui::EndTooltip();
+            }
+            ImGui::PopID();
+        }
+        if (players.empty()) ImGui::TextDisabled("No players available.");
+    }
+
+    void DrawClickPlayerInfo()
+    {
+        ImGui::TextUnformatted("PLAYER INFO"); ImGui::Separator();
+        auto player=YimMenu::Players::GetSelected();
+        if (!player.IsValid()) { ImGui::TextDisabled("Select a player."); return; }
+        ImGui::TextWrapped("%s",player.GetName());
+        ImGui::Text("Rank: %d",player.GetRank());
+        ImGui::Text("RP: %d",player.GetRP());
+        ImGui::Text("Money: %d",player.GetMoney());
+        ImGui::Text("Host: %s",player.IsHost()?"Yes":"No");
+        ImGui::Text("Flagged: %s",player.IsModder()?"Yes":"No");
+        if (player.GetPed()) ImGui::Text("Health: %d / %d",player.GetPed().GetHealth(),player.GetPed().GetMaxHealth());
+        ImGui::TextWrapped("Full existing details remain under the Info tab.");
+    }
+
 	Players::Players() :
 		#define ICON_FA_USERS "\xef\x83\x80"
 	    Submenu::Submenu("Players", ICON_FA_USERS)
@@ -124,7 +174,7 @@ namespace YimMenu::Submenus
 
 		for (auto& category : m_Categories)
 			category->PrependItem(std::make_shared<ImGuiItem>([] {
-				DrawPlayerList();
+				if (!ClickUI::Active()) DrawPlayerList();
 			}));
 	}
 }

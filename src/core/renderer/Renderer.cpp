@@ -345,8 +345,17 @@ namespace YimMenu
             if (!gameplaySpace) ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
             // ImGui sees the keys first; GTA's window must not also open/navigate the phone.
             // Gameplay controls polled outside WndProc are reserved by GUI::RunScriptImpl.
-            if (keyMessage && GUI::IsOpen() && UIManager::IsListStyle() && !GUI::IsOnboarding()
+            if (keyMessage && GUI::IsOpen() && (UIManager::IsListStyle() || UIManager::IsClickStyle()) && !GUI::IsOnboarding()
                 && IsListNavigationKey(wparam)) return 0;
+            // Mouse wheel and clicks belong to the click UI while it is open.
+            // Native controls are also suppressed on the game script thread.
+            if (GUI::IsOpen() && UIManager::IsClickStyle() && !GUI::IsOnboarding())
+            {
+                const bool mouseMessage = msg == WM_LBUTTONDOWN || msg == WM_LBUTTONUP
+                    || msg == WM_RBUTTONDOWN || msg == WM_RBUTTONUP || msg == WM_MBUTTONDOWN
+                    || msg == WM_MBUTTONUP || msg == WM_MOUSEWHEEL || msg == WM_MOUSEHWHEEL;
+                if (mouseMessage) return 0;
+            }
         }
 
         if (GetInstance().m_OriginalWndProc)

@@ -1,5 +1,6 @@
 #include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 #include "Items.hpp"
+#include "core/frontend/manager/styles/CheraxClick/CheraxClick.hpp"
 #include "core/commands/Command.hpp"
 #include "core/commands/Commands.hpp"
 #include "core/backend/FiberPool.hpp"
@@ -15,6 +16,19 @@ namespace YimMenu
 
 	void Group::Draw()
 	{
+        if (ClickUI::Active())
+        {
+            ClickUI::DrawPanel(this, m_Name, [&] {
+                for (const auto& item : m_Items)
+                {
+                    if (!item || !item->CanDraw()) continue;
+                    ImGui::PushID(item.get());
+                    item->Draw();
+                    ImGui::PopID();
+                }
+            });
+            return;
+        }
         if (ListUI::Active())
         {
             ImGui::PushID(this);

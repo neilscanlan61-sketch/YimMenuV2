@@ -1,5 +1,6 @@
 #include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 #include "Items.hpp"
+#include "core/frontend/manager/styles/CheraxClick/CheraxClick.hpp"
 #include "core/commands/Command.hpp"
 #include "core/commands/Commands.hpp"
 #include "core/commands/IntCommand.hpp"
@@ -24,6 +25,21 @@ namespace YimMenu
 
 		int value = m_Command->GetState();
 		auto label = m_LabelOverride.has_value() ? m_LabelOverride.value().c_str() : m_Command->GetLabel().c_str();
+        if (ClickUI::Active())
+        {
+            ImGui::PushID(m_Command);
+            if (!(label[0] == '#' && label[1] == '#')) ImGui::TextWrapped("%s", label);
+            ImGui::SetNextItemWidth(-1);
+            bool changed;
+            if (!m_Command->GetMinimum().has_value() || !m_Command->GetMaximum().has_value() || !m_useSlider)
+                changed = ImGui::InputInt("##value", &value);
+            else
+                changed = ImGui::SliderInt("##value", &value, m_Command->GetMinimum().value(), m_Command->GetMaximum().value());
+            if (changed) m_Command->SetState(value);
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", m_Command->GetDescription().c_str());
+            ImGui::PopID();
+            return;
+        }
         if (ListUI::Active())
         {
             ImGui::PushID(m_Command);

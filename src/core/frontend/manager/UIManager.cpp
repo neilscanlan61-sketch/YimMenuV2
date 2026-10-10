@@ -1,4 +1,5 @@
 #include "UIManager.hpp"
+#include "styles/CheraxClick/CheraxClick.hpp"
 #include "game/pointers/Pointers.hpp"
 #include "game/frontend/Menu.hpp"
 #include "core/commands/ListCommand.hpp"
@@ -11,6 +12,7 @@ namespace YimMenu::Features
 		{2, "Modern (Vertical)"},
 	    {3, "Modern (Modular)"},
 	    {4, "Cherax-inspired List"},
+        {5, "Cherax Click (Screenshots)"},
 	};
 
 	// Expose as global reference so other code can use it
@@ -19,7 +21,7 @@ namespace YimMenu::Features
 		"UI Style",
 		"Choose the UI style",
 		g_StyleOptions,
-		4};
+		5};
 }
 
 namespace YimMenu
@@ -50,6 +52,11 @@ namespace YimMenu
 		return Features::_StyleSelector.GetState() == static_cast<int>(UITheme::ModernList);
 	}
 
+	bool UIManager::IsClickStyle()
+    {
+        return Features::_StyleSelector.GetState() == static_cast<int>(UITheme::CheraxClick);
+    }
+
 	void UIManager::DrawImpl()
 	{
 		int selectedIndex = Features::_StyleSelector.GetState();
@@ -72,6 +79,9 @@ namespace YimMenu
 		case UITheme::ModernList:
 			RenderModernListTheme();
 			break;
+		case UITheme::CheraxClick:
+            RenderCheraxClickTheme();
+            break;
 		default:
 			RenderClassicTheme(); // Default theme
 			break;

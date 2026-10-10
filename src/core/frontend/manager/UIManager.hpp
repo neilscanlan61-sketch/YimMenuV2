@@ -13,6 +13,7 @@ namespace YimMenu
 		ModernV,
 		Modular,
 		ModernList,
+		CheraxClick,
 	};
 
 	class UIManager
@@ -34,6 +35,7 @@ namespace YimMenu
 		}
 
 		static bool IsListStyle();
+        static bool IsClickStyle();
 
 		static void Draw()
 		{

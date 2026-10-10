@@ -1,10 +1,12 @@
 #include "Category.hpp"
+#include "styles/CheraxClick/CheraxClick.hpp"
 #include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 
 namespace YimMenu
 {
     void Category::Draw()
     {
+        if (ClickUI::Active()) { ClickUI::DrawCategory(*this); return; }
         for (auto& item : m_Items)
         {
             if (ListUI::Active())

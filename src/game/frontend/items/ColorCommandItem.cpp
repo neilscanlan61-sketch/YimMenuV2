@@ -1,4 +1,5 @@
 #include "Items.hpp"
+#include "core/frontend/manager/styles/CheraxClick/CheraxClick.hpp"
 #include "core/commands/ColorCommand.hpp"
 #include "core/commands/Command.hpp"
 #include "core/commands/Commands.hpp"
@@ -23,6 +24,13 @@ namespace YimMenu
 		auto color = m_Command->GetState();
 		auto label = m_LabelOverride.has_value() ? m_LabelOverride.value().c_str() : m_Command->GetLabel().c_str();
 
+        if (ClickUI::Active())
+        {
+            ImGui::PushID(m_Command);
+            ImGui::TextWrapped("%s",label); ImGui::SetNextItemWidth(-1);
+            if (ImGui::ColorEdit4("##color",&color.x)) m_Command->SetState(color);
+            ImGui::PopID(); return;
+        }
 		ImGui::SameLine();
 
 		ImGui::SetNextItemWidth(150);

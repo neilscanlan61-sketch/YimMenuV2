@@ -1,5 +1,6 @@
 #include "core/frontend/manager/styles/ModernList/ModernList.hpp"
 #include "Items.hpp"
+#include "core/frontend/manager/styles/CheraxClick/CheraxClick.hpp"
 #include "core/commands/Commands.hpp"
 #include "core/commands/Command.hpp"
 #include "core/commands/HotkeySystem.hpp"
@@ -24,7 +25,7 @@ namespace YimMenu
 
 		const bool pressed = ListUI::Active()
             ? ListUI::Row(m_Command, m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data(), "RUN")
-            : ImGui::Button(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data());
+            : ImGui::Button(m_LabelOverride.has_value() ? m_LabelOverride.value().data() : m_Command->GetLabel().data(), ClickUI::Active() ? ImVec2(-1,0) : ImVec2(0,0));
         ListUI::Describe(m_Command->GetDescription().c_str());
         if (pressed)
 		{
